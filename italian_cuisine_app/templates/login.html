@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="{% static 'css/login.css' %}">
+  <title>Login - Restaurante El Buen Sabor</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="m-0 overflow-hidden font-[Inter,sans-serif]">
+  <div class="min-h-screen w-full flex items-center justify-center relative">
+    
+    <!-- Fondo -->
+    <div class="absolute inset-0 z-0 bg-cover bg-center" style="background-image: url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1920&q=80');">
+      <div class="absolute inset-0 bg-black/50"></div>
+    </div>
+
+    <!-- Contenedor principal -->
+    <div class="relative z-10 w-full max-w-md mx-4">
+      <div class="bg-white rounded-2xl shadow-2xl p-8">
+
+        <!-- Logo -->
+        <div class="flex flex-col items-center mb-8">
+          <div class="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mb-4">
+            <svg xmlns="http://www.w3.org/2000/svg" 
+              width="24" height="24" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round" class="w-8 h-8 text-white">
+              <path d="m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8"></path>
+              <path d="M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7"></path>
+              <path d="m2.1 21.8 6.4-6.3"></path>
+              <path d="m19 5-7 7"></path>
+            </svg>
+          </div>
+          <h1 class="text-2xl font-bold text-gray-900">Restaurante El Buen Sabor</h1>
+          <p class="text-gray-600 mt-1">Sistema de Gestión</p>
+        </div>
+
+        <!-- Formulario -->
+        <form method="POST" class="space-y-4">
+          {% csrf_token %}
+          
+          {% if messages %}
+            <div class="text-center text-sm text-red-600">
+              {% for message in messages %}
+                {{ message }}
+              {% endfor %}
+            </div>
+          {% endif %}
+          
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Usuario</label>
+            <input type="text" name="username" placeholder="Ingrese su usuario"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
+            <input type="password" name="password" placeholder="Ingrese su contraseña"
+              class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 transition-colors">
+          </div>
+
+          <button type="submit"
+            class="font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 px-6 py-3 text-lg w-full">
+            Iniciar sesión
+          </button>
+        </form>
+
+        <!-- Datos de prueba -->
+        <div class="mt-6 pt-6 border-t border-gray-200">
+          <p class="text-xs text-gray-500 text-center mb-2">Credenciales de prueba:</p>
+          <div class="text-xs text-gray-600 space-y-1 text-center">
+            <p><strong>Admin:</strong> usuario: admin / contraseña: admin</p>
+            <p><strong>Mesero:</strong> usuario: mesero / contraseña: mesero</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
