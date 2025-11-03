@@ -110,7 +110,23 @@ table.db-table tbody tr:nth-child(even){
 form table{ width:100%; border-collapse:collapse; }
 form th{ text-align:left; padding:8px 12px; width:220px; vertical-align:top; color:var(--muted); }
 form td{ padding:8px 12px; }
+
+/* Inputs default full-width but in modals we want shorter fields closer to labels */
 input[type=text], input[type=email], select { width:100%; padding:8px 10px; border:1px solid #d7e9dd; border-radius:6px; }
+
+/* Modal-specific form tweaks: make inputs shorter and label spacing tighter */
+.modal-body form table{ width:100%; }
+.modal-body form th{ width:140px; padding:6px 8px; vertical-align:middle; color:var(--muted); font-size:0.95rem; }
+.modal-body form td{ padding:6px 8px; }
+.modal-body input[type=text], .modal-body input[type=email], .modal-body select, .modal-body textarea{
+  width:320px; max-width:92%; padding:8px 10px; box-sizing:border-box;
+}
+
+@media (max-width:520px){
+  .modal-body input[type=text], .modal-body input[type=email], .modal-body select, .modal-body textarea{ width:100%; }
+  .modal-body form th{ width:100%; padding:6px 0; display:block; }
+  .modal-body form td{ padding:6px 0; }
+}
 
 .field-errors{ color:#b00; margin-top:6px; }
 .empty-msg{ color:var(--muted); padding:12px 0; }
@@ -149,3 +165,80 @@ input[type=text], input[type=email], select { width:100%; padding:8px 10px; bord
 
 /* Small helper for metadata (username) */
 .empleado-meta{ color:var(--muted); font-size:0.95rem; margin-bottom:8px; }
+
+.modal-root{position:fixed; inset:0; display:none; align-items:center; justify-content:center; z-index:1200;}
+.modal-root[aria-hidden="false"]{ display:flex; }
+.modal-backdrop{
+  position:fixed; inset:0; background:rgba(0,0,0,0.65); /* darker semi-translucent dark */
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+.modal-window{
+  position:relative;
+  z-index:1210;
+  /* ancho restringido; altura automática para ajustarse al contenido */
+  max-width:480px;
+  width: min(92%, 480px);
+  height: auto;
+  max-height: 85vh;
+  margin:0 auto;
+  background:var(--white);
+  border-radius:10px;
+  padding:18px;
+  box-shadow:0 18px 40px rgba(3,23,12,0.28);
+  transform:translateY(8px) scale(0.995);
+  transition:transform .18s ease, opacity .18s ease;
+  opacity:0;
+}
+.modal-root[aria-hidden="false"] .modal-window{ transform:translateY(0) scale(1); opacity:1; }
+.modal-body{ max-height: calc(85vh - 60px); overflow:auto; }
+.modal-close{ position:absolute; top:8px; right:10px; background:transparent; border:none; font-size:22px; color:var(--muted); cursor:pointer; }
+
+/* Make modal content responsive */
+@media (max-width:520px){
+  .modal-window{ width:calc(100% - 20px); padding:14px; border-radius:8px; }
+}
+
+/* Table row animations */
+.row-animate{ transition: transform .28s ease, opacity .28s ease; }
+.row-inserted{ animation: slideDownFade .36s ease both; }
+.row-updated{ animation: pulseFade .36s ease both; }
+
+@keyframes slideDownFade {
+  from { transform: translateY(-6px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+@keyframes pulseFade {
+  0% { background: rgba(25,135,84,0.12); }
+  50% { background: rgba(25,135,84,0.06); }
+  100% { background: transparent; }
+}
+
+/* Toast notifications */
+.toast-container{
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 1400;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.toast{
+  background: var(--green-700);
+  color: var(--white);
+  padding:10px 14px;
+  border-radius:8px;
+  box-shadow: 0 6px 18px rgba(6,50,22,0.16);
+  font-weight:600;
+  min-width:180px;
+  opacity:0;
+  transform: translateY(6px);
+  transition: transform .18s ease, opacity .18s ease;
+}
+.toast.show{ opacity:1; transform: translateY(0); }
+.toast.success{ background: var(--green-700); }
+.toast.warn{ background: #f59e0b; }
+.toast.error{ background: #ef4444; }
+
+

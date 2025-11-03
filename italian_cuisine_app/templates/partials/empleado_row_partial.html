@@ -1,0 +1,14 @@
+<tr data-pk="{{ empleado.pk }}">
+    <td>{{ forloop.counter|default:0 }}</td>
+    <td>{{ empleado.first_name }}</td>
+    <td>{{ empleado.last_name }}</td>
+    <td>{{ empleado.get_cargo_display }}</td>
+    <td>{{ empleado.telefono|default:"-" }}</td>
+    <td>
+        <span class="actions">
+            <a class="btn btn-small btn-new" href="{% url 'empleado_detail' empleado.pk %}" data-modal="true">Ver</a>
+            <a class="btn btn-small btn-new" href="{% url 'empleado_edit' empleado.pk %}" data-modal="true">Editar</a>
+            <a class="btn btn-small btn-outline" href="{% url 'empleado_delete' empleado.pk %}" data-modal="true">Eliminar</a>
+        </span>
+    </td>
+</tr>

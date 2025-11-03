@@ -6,7 +6,7 @@
 {% block content %}
     <h1>Lista de Empleados</h1>
     <div class="top-actions">
-        <a href="{% url 'empleado_create' %}" class="btn btn-new">+ Nuevo empleado</a>
+        <a href="{% url 'empleado_create' %}" class="btn btn-new" data-modal="true">+ Nuevo empleado</a>
     </div>
 
     {% if empleados %}
@@ -31,9 +31,9 @@
                     <td>{{ empleado.telefono|default:"-" }}</td>
                     <td>
                         <span class="actions">
-                            <a class="btn btn-small btn-new" href="{% url 'empleado_detail' empleado.pk %}">Ver</a>
-                            <a class="btn btn-small btn-new" href="{% url 'empleado_edit' empleado.pk %}">Editar</a>
-                            <a class="btn btn-small btn-outline" href="{% url 'empleado_delete' empleado.pk %}">Eliminar</a>
+                            <a class="btn btn-small btn-new" href="{% url 'empleado_detail' empleado.pk %}" data-modal="true">Ver</a>
+                            <a class="btn btn-small btn-new" href="{% url 'empleado_edit' empleado.pk %}" data-modal="true">Editar</a>
+                            <a class="btn btn-small btn-outline" href="{% url 'empleado_delete' empleado.pk %}" data-modal="true">Eliminar</a>
                         </span>
                     </td>
                 </tr>

@@ -1,0 +1,23 @@
+<div class="empleado-card">
+    <p class="empleado-meta">Usuario: {% if empleado.user %}{{ empleado.user.username }}{% else %}-{% endif %}</p>
+    <dl class="detail-list">
+        <div>
+            <dt>Nombre</dt>
+            <dd>{% if empleado.first_name or empleado.last_name %}{{ empleado.first_name }} {{ empleado.last_name }}{% elif empleado.user %}{{ empleado.user.get_full_name|default:empleado.user.username }}{% else %}-{% endif %}</dd>
+
+            <dt>Cargo</dt>
+            <dd>{{ empleado.get_cargo_display }}</dd>
+        </div>
+
+        <div>
+            <dt>Email</dt>
+            <dd>{% if empleado.email %}{{ empleado.email }}{% elif empleado.user %}{{ empleado.user.email }}{% else %}-{% endif %}</dd>
+
+            <dt>Teléfono</dt>
+            <dd>{{ empleado.telefono|default:"-" }}</dd>
+
+            <dt>Fecha de ingreso</dt>
+            <dd>{{ empleado.fecha_ingreso|date:"d/m/Y" }}</dd>
+        </div>
+    </dl>
+</div>

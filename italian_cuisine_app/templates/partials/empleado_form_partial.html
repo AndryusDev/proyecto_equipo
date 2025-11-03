@@ -1,0 +1,21 @@
+<form method="post" class="empleado-form" action="{{ request.path }}">
+    {% csrf_token %}
+    <table>
+        {% for field in form %}
+        <tr>
+            <th>{{ field.label_tag }}</th>
+            <td>
+                {{ field }}
+                {% if field.errors %}
+                    <div class="field-errors">{{ field.errors|striptags }}</div>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <p style="margin-top:12px; display:flex; gap:8px;">
+        <button type="submit" class="btn btn-new">{{ submit_label|default:'Guardar' }}</button>
+        <button type="button" class="btn btn-outline" data-modal-close>Cancelar</button>
+    </p>
+</form>
