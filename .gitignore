@@ -1,5 +1,18 @@
-/.venv
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+
+# Django
+*.log
+db.sqlite3
+
+# Environments
+.venv/
+env/
+venv/
+
+# IDE
+.vscode/
+.idea/
