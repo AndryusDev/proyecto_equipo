@@ -1,0 +1,59 @@
+{% extends 'panel_base.html' %}
+
+{% block titulo %}
+Dashboard
+{% endblock %}
+
+{% block contenido %}
+<section class="tarjetas">
+  <div class="tarjeta">
+    <h3>Pedidos del Día</h3>
+    <p class="valor">24</p>
+    <small>+12% vs ayer</small>
+  </div>
+  <div class="tarjeta">
+    <h3>Ventas del Día</h3>
+    <p class="valor">$1,240</p>
+    <small>+8% vs ayer</small>
+  </div>
+  <div class="tarjeta">
+    <h3>Meseros Activos</h3>
+    <p class="valor">5</p>
+    <small>0% vs ayer</small>
+  </div>
+  <div class="tarjeta">
+    <h3>Platos Vendidos</h3>
+    <p class="valor">87</p>
+    <small>+15% vs ayer</small>
+  </div>
+</section>
+
+<section class="tabla">
+  <h2>Pedidos Recientes</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Pedido</th>
+        <th>Mesa</th>
+        <th>Mesero</th>
+        <th>Items</th>
+        <th>Total</th>
+        <th>Estado</th>
+        <th>Hora</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>#001</td><td>Mesa 5</td><td>María González</td>
+        <td>3 platos</td><td>$45.00</td>
+        <td><span class="estado entregado">Entregado</span></td><td>12:30 PM</td>
+      </tr>
+      <tr>
+        <td>#002</td><td>Mesa 8</td><td>Juan Pérez</td>
+        <td>2 platos</td><td>$32.00</td>
+        <td><span class="estado proceso">En Proceso</span></td><td>12:45 PM</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+{% endblock %}

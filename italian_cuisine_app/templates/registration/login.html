@@ -12,7 +12,7 @@
 
   <div class="contenedor-principal">
 
-    <!-- Fondo -->
+    <!-- Fondo decorativo -->
     <div class="fondo-imagen"></div>
     <div class="fondo-oscuro"></div>
 
@@ -33,18 +33,21 @@
         <p class="subtitulo">Sistema de Gestión</p>
       </div>
 
-      <!-- Formulario -->
-      <form method="post" class="formulario-login">
+      <!-- Formulario de inicio de sesión -->
+      <form method="post" action="{% url 'login' %}" class="formulario-login">
         {% csrf_token %}
+        
         {% if form.errors %}
           <div class="mensaje-error">Usuario o contraseña incorrectos.</div>
         {% endif %}
 
         <label for="id_username" class="etiqueta">Usuario</label>
-        <input type="text" name="username" id="id_username" placeholder="Ingrese su usuario" class="campo-texto" required>
+        <input type="text" name="username" id="id_username"
+               placeholder="Ingrese su usuario" class="campo-texto" required>
 
         <label for="id_password" class="etiqueta">Contraseña</label>
-        <input type="password" name="password" id="id_password" placeholder="Ingrese su contraseña" class="campo-texto" required>
+        <input type="password" name="password" id="id_password"
+               placeholder="Ingrese su contraseña" class="campo-texto" required>
 
         <button type="submit" class="boton-ingresar">Iniciar sesión</button>
       </form>
