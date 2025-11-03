@@ -1,0 +1,65 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inicio de Sesión - Restaurante El Buen Sabor</title>
+  <link rel="stylesheet" href="{% static 'css/login.css' %}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="fondo-pantalla">
+
+  <div class="contenedor-principal">
+
+    <!-- Fondo decorativo -->
+    <div class="fondo-imagen"></div>
+    <div class="fondo-oscuro"></div>
+
+    <!-- Cuadro del login -->
+    <div class="cuadro-login">
+      <div class="encabezado-login">
+        <div class="icono-login">
+          <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+            class="icono-utensilio">
+            <path d="m16 2-2.3 2.3a3 3 0 0 0 0 4.2l1.8 1.8a3 3 0 0 0 4.2 0L22 8"></path>
+            <path d="M15 15 3.3 3.3a4.2 4.2 0 0 0 0 6l7.3 7.3c.7.7 2 .7 2.8 0L15 15Zm0 0 7 7"></path>
+            <path d="m2.1 21.8 6.4-6.3"></path>
+            <path d="m19 5-7 7"></path>
+          </svg>
+        </div>
+        <h1 class="titulo">Restaurante El Buen Sabor</h1>
+        <p class="subtitulo">Sistema de Gestión</p>
+      </div>
+
+      <!-- Formulario de inicio de sesión -->
+      <form method="post" action="{% url 'login' %}" class="formulario-login">
+        {% csrf_token %}
+        
+        {% if form.errors %}
+          <div class="mensaje-error">Usuario o contraseña incorrectos.</div>
+        {% endif %}
+
+        <label for="id_username" class="etiqueta">Usuario</label>
+        <input type="text" name="username" id="id_username"
+               placeholder="Ingrese su usuario" class="campo-texto" required>
+
+        <label for="id_password" class="etiqueta">Contraseña</label>
+        <input type="password" name="password" id="id_password"
+               placeholder="Ingrese su contraseña" class="campo-texto" required>
+
+        <button type="submit" class="boton-ingresar">Iniciar sesión</button>
+      </form>
+
+      <!-- Datos de prueba -->
+      <div class="info-pruebas">
+        <p>Credenciales de prueba:</p>
+        <p><strong>Admin:</strong> usuario: admin / contraseña: admin</p>
+        <p><strong>Mesero:</strong> usuario: mesero / contraseña: mesero</p>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

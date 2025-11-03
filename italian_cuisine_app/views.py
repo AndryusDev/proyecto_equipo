@@ -1,48 +1,66 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.decorators import login_required
-from django.views.generic import ListView
+from django.views.generic import ListView, CreateView, DetailView, DeleteView, UpdateView, TemplateView
 from django.http import JsonResponse, HttpResponse
 from django.template.loader import render_to_string
-
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.generic import CreateView, DetailView, DeleteView, UpdateView
 from django.urls import reverse_lazy
 
-from .models import Empleado
+from .models import Empleado, Pedido
 from .forms import EmpleadoModelForm
 
-# Create your views here.
-def login_view(request):
-    if request.method == "POST":
-        username = request.POST.get('username')
-        password = request.POST.get('password')
+# ---------- LOGIN ----------
+class VistaLogin(LoginView):
+    template_name = 'registration/login.html'
+    redirect_authenticated_user = True
 
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect('panel_principal')  # cambiar por tu dashboard
-        else:
-            messages.error(request, "Usuario o contraseña incorrectos")
-    
-    return render(request, 'login.html')
-def logout_view(request):
-    logout(request)
-    return redirect('login')
+    def get_success_url(self):
+        return reverse_lazy('dashboard')  # ✅ Al iniciar sesión va al dashboard
 
+def lista_pedidos(request):
+    # El modelo Pedido puede definir `fecha` o `hora_creacion` como campo DateTimeField.
+    # Elegimos el que exista para ordenar.
+    if any(field.name == 'hora_creacion' for field in Pedido._meta.fields):
+        pedidos = Pedido.objects.all().order_by('-hora_creacion')
+    else:
+        pedidos = Pedido.objects.all().order_by('-fecha')
 
-@login_required
-def panel_principal(request):
-    return render(request, 'usuarios/panel.html')
+    return render(request, 'pedidos/lista_pedidos.html', {'pedidos': pedidos})
 
+# ---------- DASHBOARD PRINCIPAL ----------
+class DashboardView(LoginRequiredMixin, TemplateView):
+    template_name = 'panel/dashboard.html'
+    login_url = '/login/'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        empleado = Empleado.objects.get(user=self.request.user)
+        context["empleado"] = empleado
+        context["cargo"] = empleado.cargo
+        return context
+
+# ---------- PANEL (REDIRECCIÓN AUTOMÁTICA) ----------
+class PanelPrincipalView(LoginRequiredMixin, TemplateView):
+    """Redirige automáticamente al dashboard cuando se entra a /panel/"""
+    login_url = '/login/'
+
+    def get(self, request, *args, **kwargs):
+        return redirect('dashboard')  # ✅ redirige al dashboard automáticamente
+
+# ---------- LOGOUT ----------
+class VistaLogout(LogoutView):
+    next_page = reverse_lazy('login')  # ✅ vuelve al login después de cerrar sesión
+
+# ---------- GESTIÓN DE EMPLEADOS (tu versión local) ----------
 class UserListView(LoginRequiredMixin, ListView):
     model = Empleado
     template_name = 'empleados.html'
     context_object_name = 'empleados'
     paginate_by = 10  # muestra 10 empleados por página
     login_url = 'login'
-
 
 class EmpleadoDetailView(LoginRequiredMixin, DetailView):
     model = Empleado
@@ -55,11 +73,6 @@ class EmpleadoDetailView(LoginRequiredMixin, DetailView):
         if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
             return [self.partial_template_name]
         return [self.template_name]
-
-
-from django.views.generic import DetailView, DeleteView
-from django.urls import reverse_lazy
-
 
 class EmpleadoCreateView(LoginRequiredMixin, CreateView):
     model = Empleado
@@ -90,7 +103,6 @@ class EmpleadoCreateView(LoginRequiredMixin, CreateView):
             return [self.partial_template_name]
         return [self.template_name]
 
-
 class EmpleadoUpdateView(LoginRequiredMixin, UpdateView):
     model = Empleado
     form_class = EmpleadoModelForm
@@ -118,13 +130,11 @@ class EmpleadoUpdateView(LoginRequiredMixin, UpdateView):
             return [self.partial_template_name]
         return [self.template_name]
 
-
 class EmpleadoDeleteView(LoginRequiredMixin, DeleteView):
     model = Empleado
     template_name = 'empleados_confirm_delete.html'
     success_url = reverse_lazy('empleados')
     login_url = 'login'
-
     partial_template_name = 'partials/empleado_confirm_delete_partial.html'
 
     def get_template_names(self):

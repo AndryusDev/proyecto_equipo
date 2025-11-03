@@ -1,6 +1,4 @@
 from django.db import models
-
-from django.db import models
 from django.contrib.auth.models import User
 
 
@@ -74,16 +72,15 @@ class Mesa(models.Model):
 # ==============================
 class Pedido(models.Model):
     ESTADOS = (
-        ('pendiente', 'Pendiente'),
-        ('en_proceso', 'En proceso'),
-        ('entregado', 'Entregado'),
-        ('cancelado', 'Cancelado'),
+        ('espera', 'En espera'),
+        ('proceso', 'En proceso'),
+        ('listo', 'Listo'),
     )
 
     mesa = models.ForeignKey(Mesa, on_delete=models.SET_NULL, null=True, blank=True)
     mesero = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     fecha = models.DateTimeField(auto_now_add=True)
-    estado = models.CharField(max_length=20, choices=ESTADOS, default='pendiente')
+    estado = models.CharField(max_length=20, choices=ESTADOS, default='espera')
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def __str__(self):
@@ -114,3 +111,5 @@ class DetallePedido(models.Model):
     def __str__(self):
         return f"{self.plato.nombre} x {self.cantidad}"
 
+# Nota: la clase Pedido ya estaba definida arriba con campos completos y relación con Mesa,
+# User y DetallePedido. Nos aseguramos de que ese modelo es el único en este archivo.

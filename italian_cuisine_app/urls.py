@@ -1,10 +1,15 @@
 from django.urls import path
+from .views import VistaLogin, VistaLogout, DashboardView, PanelPrincipalView
+from .views import VistaLogin
 from . import views
 
+
 urlpatterns = [
-    path('login/', views.login_view, name='login'),
-    path('logout/', views.logout_view, name='logout'),
-    path('panel/', views.panel_principal, name='panel_principal'),
+    path('', views.lista_pedidos, name='lista_pedidos'),
+    path('login/', VistaLogin.as_view(), name='login'),
+    path('logout/', VistaLogout.as_view(), name='logout'),
+    path('panel/', PanelPrincipalView.as_view(), name='panel_principal'),
+    path('dashboard/', DashboardView.as_view(), name='dashboard'),
     path('empleados/', views.UserListView.as_view(), name='empleados'),
     path('empleados/nuevo/', views.EmpleadoCreateView.as_view(), name='empleado_create'),
     path('empleados/<int:pk>/', views.EmpleadoDetailView.as_view(), name='empleado_detail'),
