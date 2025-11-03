@@ -1,0 +1,151 @@
+/* Paleta: verdes y blanco */
+:root{
+  /* tonos de verde ajustados: principal = #008f39 */
+  --green-800: #006e2b; /* más oscuro */
+  --green-700: #008f39; /* principal solicitado */
+  --green-600: #19a84a; /* un poco más claro */
+  --green-50: #edf7ed;
+  --muted: #6b7280;
+  --white: #ffffff;
+}
+
+body{
+  font-family: Inter, Arial, Helvetica, sans-serif;
+  margin: 0;
+  background: var(--green-50);
+  color: #0b2b17;
+}
+.container{
+  max-width: 1100px;
+  margin: 24px auto;
+  background: var(--white);
+  padding: 20px 24px;
+  border-radius: 8px;
+  box-shadow: 0 6px 18px rgba(12, 53, 23, 0.06);
+}
+
+h1{
+  margin: 0 0 16px 0;
+  color: var(--green-700);
+}
+
+/* Tabla estilo "base de datos" */
+table.db-table{
+  border-collapse: collapse;
+  width: 100%;
+}
+table.db-table thead th{
+  background: linear-gradient(180deg,var(--green-600),var(--green-700));
+  color: var(--white);
+  text-align: left;
+  padding: 10px 12px;
+  font-weight: 600;
+}
+table.db-table td, table.db-table th{
+  border: 1px solid #e6f2ea;
+  padding: 10px 12px;
+}
+table.db-table tbody tr:nth-child(even){
+  background: #f7fff7;
+}
+
+.actions a{ color: var(--green-700); text-decoration:none; margin: 0 6px; padding:4px 8px; border-radius:4px; transition: background .14s ease, transform .12s ease, color .12s ease; }
+.actions a:hover{ text-decoration:underline; }
+
+/* Botones de acción: aplicar estilo verde excepto el de eliminar */
+.actions a.btn:not(.btn-danger), .actions a.btn-small:not(.btn-danger), .actions a.btn-outline {
+  background: var(--green-700);
+  color: var(--white) !important;
+  border: 1px solid rgba(0,0,0,0.08);
+  text-decoration: none;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  transition: background .14s ease, transform .12s ease, color .12s ease;
+}
+
+/* Hover: oscurecer ligeramente usando --green-800 */
+.actions a.btn:not(.btn-danger):hover, .actions a.btn-small:not(.btn-danger):hover, .actions a.btn-outline:hover {
+  background: var(--green-800);
+  transform: translateY(-1px);
+}
+
+/* Para el template de empleados: dejar el botón eliminar con fondo blanco (borde rojo) */
+.actions a.btn-danger {
+  background: var(--white);
+  color: #b71c1c !important;
+  border: 1px solid #b71c1c;
+  box-shadow: none;
+}
+.actions a.btn-danger:hover {
+  background: #b71c1c;
+  color: var(--white) !important;
+  transform: none;
+}
+
+.btn{
+  display:inline-block;
+  padding:8px 12px;
+  border-radius:6px;
+  text-decoration:none;
+  cursor:pointer;
+  border:none;
+}
+.btn-primary{ background:var(--green-600); color:var(--white); }
+.btn-new{ background: linear-gradient(180deg,var(--green-700),var(--green-800)); color:var(--white); border: 1px solid rgba(0,0,0,0.12); box-shadow: 0 3px 10px rgba(11,50,20,0.18); }
+.btn-outline{ background:transparent; color:var(--green-700); border:1px solid var(--green-700); }
+.btn-danger{ background:#b71c1c; color:var(--white); }
+
+/* Utility: align top action buttons to the right */
+.top-actions{ display:flex; justify-content:flex-end; margin-bottom:12px; }
+
+/* Small button variant for table actions */
+.btn-small{ padding:4px 8px; font-size:0.9rem; border-radius:4px; }
+
+/* Bigger, touch-friendly new button on small screens */
+@media (max-width:720px){
+  .btn-new{ padding:12px 16px; font-size:1.05rem; border-radius:8px; }
+  .btn-small{ padding:8px 10px; font-size:1rem; }
+}
+
+/* Form table */
+form table{ width:100%; border-collapse:collapse; }
+form th{ text-align:left; padding:8px 12px; width:220px; vertical-align:top; color:var(--muted); }
+form td{ padding:8px 12px; }
+input[type=text], input[type=email], select { width:100%; padding:8px 10px; border:1px solid #d7e9dd; border-radius:6px; }
+
+.field-errors{ color:#b00; margin-top:6px; }
+.empty-msg{ color:var(--muted); padding:12px 0; }
+
+@media (max-width:720px){
+  .container{ padding:12px; }
+  form th{ display:block; width:100%; }
+}
+
+/* Estilos para detalle de empleado */
+.empleado-card{
+  background: linear-gradient(180deg, var(--white), #fbfff9);
+  border: 1px solid rgba(11,80,40,0.06);
+  padding: 18px;
+  border-radius: 8px;
+  box-shadow: 0 6px 14px rgba(9,40,18,0.04);
+  margin-bottom: 16px;
+}
+.empleado-card .detail-list{ display:grid; grid-template-columns: 1fr 1fr; gap:12px 28px; align-items:start; }
+.empleado-card dt{
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom:4px;
+}
+.empleado-card dd{
+  margin:0 0 12px 0;
+  font-weight:600;
+  color:#071a0f;
+}
+/* For single-column screens */
+@media (max-width:720px){
+  .empleado-card .detail-list{ grid-template-columns: 1fr; }
+}
+
+/* Small helper for metadata (username) */
+.empleado-meta{ color:var(--muted); font-size:0.95rem; margin-bottom:8px; }

@@ -13,13 +13,24 @@ class Empleado(models.Model):
         ('mesero', 'Mesero'),
     )
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True)
     cargo = models.CharField(max_length=20, choices=CARGOS)
+    # Datos personales guardados directamente en Empleado (opcional)
+    first_name = models.CharField(max_length=150, blank=True, null=True)
+    last_name = models.CharField(max_length=150, blank=True, null=True)
+    email = models.EmailField(blank=True, null=True)
     telefono = models.CharField(max_length=20, blank=True, null=True)
     fecha_ingreso = models.DateField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.user.username} ({self.cargo})"
+        # Preferir mostrar nombre completo si existe, luego usuario, sino id
+        if self.first_name or self.last_name:
+            full = f"{(self.first_name or '').strip()} {(self.last_name or '').strip()}".strip()
+            if full:
+                return f"{full} ({self.cargo})"
+        if self.user:
+            return f"{self.user.username} ({self.cargo})"
+        return f"Empleado #{self.pk} ({self.cargo})"
 
 
 # ==============================
