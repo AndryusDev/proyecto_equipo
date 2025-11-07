@@ -20,7 +20,7 @@
     <nav class="menu">
       {% if empleado.cargo == 'administrador' %}
         <a href="{% url 'dashboard' %}" class="activo">📊 Dashboard</a>
-        <a href="#">🍝 Platos y Categorías</a>
+        <a href="{% url 'platos_categorias' %}">🍝 Platos y Categorías</a>
         <a href="#">🧾 Pedidos</a>
         <a href="#">👥 Empleados</a>
         <a href="#">📈 Reportes</a>

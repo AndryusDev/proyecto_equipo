@@ -252,3 +252,118 @@
 .mensaje.success { background: #dcfce7; color: #166534; }
 .mensaje.warning { background: #fef3c7; color: #92400e; }
 .mensaje.error { background: #fee2e2; color: #991b1b; }
+
+/* === BOTONES DE ELIMINAR (mejorados) === */
+.btn-delete,
+.btn-delete-mini {
+  background: linear-gradient(145deg, #f87171, #dc2626);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 34px;
+  height: 34px;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  box-shadow: 0 3px 6px rgba(220, 38, 38, 0.25);
+}
+
+.btn-delete:hover,
+.btn-delete-mini:hover {
+  background: linear-gradient(145deg, #dc2626, #b91c1c);
+  transform: scale(1.1);
+  box-shadow: 0 5px 10px rgba(220, 38, 38, 0.4);
+}
+
+/* Variante más pequeña para los platos */
+.btn-delete-mini {
+  width: 30px;
+  height: 30px;
+  font-size: 1rem;
+}
+
+/* Posicionamiento más limpio dentro de las tarjetas */
+.categoria-header form,
+.plato-card form {
+  display: inline-block;
+  margin-left: 8px;
+}
+
+/* === BOTONES DE ELIMINAR MEJORADOS === */
+.btn-delete,
+.btn-delete-mini {
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 3px 6px rgba(239, 68, 68, 0.3);
+}
+
+.btn-delete:hover,
+.btn-delete-mini:hover {
+  background: #dc2626;
+  transform: scale(1.1);
+  box-shadow: 0 5px 10px rgba(220, 38, 38, 0.4);
+}
+
+/* Variante más pequeña */
+.btn-delete-mini {
+  width: 30px;
+  height: 30px;
+  font-size: 0.9rem;
+}
+
+/* Animación de “shake” suave en error */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-3px); }
+  75% { transform: translateX(3px); }
+}
+
+.mensaje.error {
+  animation: shake 0.3s ease;
+}
+
+.mensajes {
+  margin: 1rem 0;
+  text-align: center;
+}
+
+.mensaje {
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  margin-bottom: 0.4rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  display: inline-block;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.mensaje.success {
+  background: #dcfce7;
+  color: #166534;
+  border-left: 4px solid #16a34a;
+}
+
+.mensaje.warning {
+  background: #fef9c3;
+  color: #92400e;
+  border-left: 4px solid #facc15;
+}
+
+.mensaje.error {
+  background: #fee2e2;
+  color: #991b1b;
+  border-left: 4px solid #ef4444;
+}

@@ -8,6 +8,10 @@ from .models import Pedido, Categoria, Plato, Empleado
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView, CreateView
+from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views import View
+
 
 
 # ---------- LOGIN ----------
@@ -130,3 +134,25 @@ class AgregarPlatoView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         messages.success(self.request, "Plato añadido correctamente.")
         return super().form_valid(form)
+    
+
+@method_decorator(login_required, name='dispatch')
+class EliminarCategoriaView(View):
+    def post(self, request, pk):
+        categoria = get_object_or_404(Categoria, pk=pk)
+        if categoria.platos.exists():
+            messages.error(request, f"❌ No se puede eliminar la categoría '{categoria.nombre}' porque tiene platos asociados.")
+            return redirect('platos_categorias')
+        
+        categoria.delete()
+        messages.success(request, f"🗑️ Categoría '{categoria.nombre}' eliminada correctamente.")
+        return redirect('platos_categorias')
+
+
+@method_decorator(login_required, name='dispatch')
+class EliminarPlatoView(View):
+    def post(self, request, pk):
+        plato = get_object_or_404(Plato, pk=pk)
+        plato.delete()
+        messages.success(request, f"🗑️ Plato '{plato.nombre}' eliminado correctamente.")
+        return redirect('platos_categorias')

@@ -1,0 +1,123 @@
+{% extends 'panel_base.html' %}
+{% load static %}
+{% block titulo %}Platos y Categorías{% endblock %}
+
+{% block contenido %}
+<link rel="stylesheet" href="{% static 'css/platos_categorias.css' %}">
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>🍝 Platos y Categorías</h2>
+    <div class="acciones">
+      <button class="btn-primario" onclick="abrirModal('modalCategoria')">+ Nueva Categoría</button>
+      <button class="btn-secundario" onclick="abrirModal('modalPlato')">+ Nuevo Plato</button>
+    </div>
+  </div>
+
+  {% if messages %}
+    <div class="mensajes">
+      {% for message in messages %}
+        <p class="mensaje {{ message.tags }}">{{ message }}</p>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="categorias">
+    {% for categoria in categorias %}
+      <div class="categoria-card">
+        <div class="categoria-header">
+          <div>
+            <h3>{{ categoria.nombre }}</h3>
+            <p>{{ categoria.platos.count }} platos</p>
+          </div>
+
+          <!-- ELIMINAR CATEGORÍA -->
+          <form method="post" action="{% url 'eliminar_categoria' categoria.id %}" onsubmit="return confirm('¿Eliminar la categoría {{ categoria.nombre }}?');">
+            {% csrf_token %}
+            <button type="submit" class="btn-delete">🗑️</button>
+          </form>
+        </div>
+
+        <div class="platos">
+          {% for plato in categoria.platos.all %}
+            <div class="plato-card">
+              {% if plato.imagen %}
+                <img src="{{ plato.imagen.url }}" alt="{{ plato.nombre }}">
+              {% else %}
+                <img src="{% static 'img/plato_default.jpg' %}" alt="Sin imagen">
+              {% endif %}
+
+              <div class="plato-info">
+                <h4>{{ plato.nombre }}</h4>
+                <p class="descripcion">{{ plato.descripcion|default:"Sin descripción" }}</p>
+                <p class="precio">${{ plato.precio }}</p>
+                <span class="estado {% if plato.disponible %}disponible{% else %}no-disponible{% endif %}">
+                  {% if plato.disponible %}Disponible{% else %}No disponible{% endif %}
+                </span>
+              </div>
+
+              <!-- ELIMINAR PLATO -->
+              <form method="post" action="{% url 'eliminar_plato' plato.id %}" onsubmit="return confirm('¿Eliminar el plato {{ plato.nombre }}?');">
+                {% csrf_token %}
+                <button type="submit" class="btn-delete-mini">🗑️</button>
+              </form>
+            </div>
+          {% empty %}
+            <p class="sin-platos">No hay platos en esta categoría.</p>
+          {% endfor %}
+        </div>
+      </div>
+    {% empty %}
+      <p class="sin-categorias">Aún no hay categorías creadas.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- MODAL: NUEVA CATEGORÍA -->
+<div id="modalCategoria" class="modal">
+  <div class="modal-content">
+    <h3>🆕 Nueva Categoría</h3>
+    <form method="post" action="{% url 'agregar_categoria' %}">
+      {% csrf_token %}
+      <input type="text" name="nombre" placeholder="Nombre de la categoría" required>
+      <button type="submit" class="btn-guardar">Guardar</button>
+      <button type="button" class="btn-cerrar" onclick="cerrarModal('modalCategoria')">Cancelar</button>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: NUEVO PLATO -->
+<div id="modalPlato" class="modal">
+  <div class="modal-content">
+    <h3>🍝 Nuevo Plato</h3>
+    <form method="post" enctype="multipart/form-data" action="{% url 'agregar_plato' %}">
+      {% csrf_token %}
+      <input type="text" name="nombre" placeholder="Nombre del plato" required>
+      <textarea name="descripcion" placeholder="Descripción"></textarea>
+      <input type="number" name="precio" step="0.01" placeholder="Precio" required>
+      
+      <select name="categoria" required>
+        <option value="">Seleccione categoría</option>
+        {% for categoria in categorias %}
+          <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+        {% endfor %}
+      </select>
+
+      <label><input type="checkbox" name="disponible" checked> Disponible</label>
+      <input type="file" name="imagen" accept="image/*">
+
+      <button type="submit" class="btn-guardar">Guardar Plato</button>
+      <button type="button" class="btn-cerrar" onclick="cerrarModal('modalPlato')">Cancelar</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  function abrirModal(id) {
+    document.getElementById(id).style.display = 'flex';
+  }
+  function cerrarModal(id) {
+    document.getElementById(id).style.display = 'none';
+  }
+</script>
+{% endblock %}
