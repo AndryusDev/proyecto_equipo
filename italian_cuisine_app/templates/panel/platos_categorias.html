@@ -34,7 +34,9 @@
           <!-- ELIMINAR CATEGORÍA -->
           <form method="post" action="{% url 'eliminar_categoria' categoria.id %}" onsubmit="return confirm('¿Eliminar la categoría {{ categoria.nombre }}?');">
             {% csrf_token %}
-            <button type="submit" class="btn-delete">🗑️</button>
+            <button type="submit" class="btn-delete" title="Eliminar categoría">
+              <span>🗑️</span>
+            </button>
           </form>
         </div>
 
@@ -42,9 +44,9 @@
           {% for plato in categoria.platos.all %}
             <div class="plato-card">
               {% if plato.imagen %}
-                <img src="{{ plato.imagen.url }}" alt="{{ plato.nombre }}">
+                <img src="{{ plato.imagen.url }}" alt="{{ plato.nombre }}" loading="lazy">
               {% else %}
-                <img src="{% static 'img/plato_default.jpg' %}" alt="Sin imagen">
+                <img src="{% static 'img/plato_default.jpg' %}" alt="Sin imagen" loading="lazy">
               {% endif %}
 
               <div class="plato-info">
@@ -59,7 +61,9 @@
               <!-- ELIMINAR PLATO -->
               <form method="post" action="{% url 'eliminar_plato' plato.id %}" onsubmit="return confirm('¿Eliminar el plato {{ plato.nombre }}?');">
                 {% csrf_token %}
-                <button type="submit" class="btn-delete-mini">🗑️</button>
+                <button type="submit" class="btn-delete-mini" title="Eliminar plato">
+                  <span>🗑️</span>
+                </button>
               </form>
             </div>
           {% empty %}
@@ -80,8 +84,10 @@
     <form method="post" action="{% url 'agregar_categoria' %}">
       {% csrf_token %}
       <input type="text" name="nombre" placeholder="Nombre de la categoría" required>
-      <button type="submit" class="btn-guardar">Guardar</button>
-      <button type="button" class="btn-cerrar" onclick="cerrarModal('modalCategoria')">Cancelar</button>
+      <div class="modal-actions">
+        <button type="submit" class="btn-guardar">Guardar</button>
+        <button type="button" class="btn-cerrar" onclick="cerrarModal('modalCategoria')">Cancelar</button>
+      </div>
     </form>
   </div>
 </div>
@@ -103,11 +109,16 @@
         {% endfor %}
       </select>
 
-      <label><input type="checkbox" name="disponible" checked> Disponible</label>
+      <label class="checkbox">
+        <input type="checkbox" name="disponible" checked> Disponible
+      </label>
+
       <input type="file" name="imagen" accept="image/*">
 
-      <button type="submit" class="btn-guardar">Guardar Plato</button>
-      <button type="button" class="btn-cerrar" onclick="cerrarModal('modalPlato')">Cancelar</button>
+      <div class="modal-actions">
+        <button type="submit" class="btn-guardar">Guardar Plato</button>
+        <button type="button" class="btn-cerrar" onclick="cerrarModal('modalPlato')">Cancelar</button>
+      </div>
     </form>
   </div>
 </div>

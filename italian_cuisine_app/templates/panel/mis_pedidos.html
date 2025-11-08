@@ -1,0 +1,35 @@
+{% extends 'panel_base.html' %}
+{% load static %}
+{% block titulo %}Mis Pedidos{% endblock %}
+
+{% block contenido %}
+<link rel="stylesheet" href="{% static 'css/mis_pedidos.css' %}">
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>📋 Mis Pedidos</h2>
+  </div>
+
+  {% if pedidos %}
+    <div class="lista-pedidos">
+      {% for pedido in pedidos %}
+        <div class="pedido-card">
+          <h3>Pedido #{{ pedido.id }}</h3>
+          <p><strong>Mesa:</strong> {{ pedido.mesa.numero }}</p>
+          <p><strong>Fecha:</strong> {{ pedido.fecha|date:"d/m/Y H:i" }}</p>
+          <p><strong>Estado:</strong> <span class="estado {{ pedido.estado }}">{{ pedido.get_estado_display }}</span></p>
+          <p><strong>Total:</strong> ${{ pedido.total }}</p>
+          <hr>
+          <ul>
+            {% for detalle in pedido.detallepedido_set.all %}
+              <li>{{ detalle.plato.nombre }} x {{ detalle.cantidad }} — ${{ detalle.subtotal }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="sin-pedidos">Aún no has registrado pedidos.</p>
+  {% endif %}
+</section>
+{% endblock %}

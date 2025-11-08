@@ -1,0 +1,40 @@
+.lista-pedidos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.2rem;
+}
+
+.pedido-card {
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  padding: 1rem 1.2rem;
+  transition: 0.2s ease;
+}
+
+.pedido-card:hover {
+  transform: translateY(-3px);
+}
+
+.pedido-card h3 {
+  color: #14532d;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.estado {
+  padding: 0.3rem 0.6rem;
+  border-radius: 8px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.estado.espera { background: #facc15; }
+.estado.proceso { background: #3b82f6; }
+.estado.listo { background: #16a34a; }
+
+.sin-pedidos {
+  text-align: center;
+  color: #6b7280;
+  font-style: italic;
+}

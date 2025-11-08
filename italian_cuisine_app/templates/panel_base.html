@@ -25,8 +25,8 @@
         <a href="#">👥 Empleados</a>
         <a href="#">📈 Reportes</a>
       {% elif empleado.cargo == 'mesero' %}
-        <a href="#">🧾 Mis Pedidos</a>
-        <a href="#">➕ Nuevo Pedido</a>
+        <a href="{% url 'mis_pedidos' %}">🧾 Mis Pedidos</a>
+        <a href="{% url 'pedidos' %}">➕ Nuevo Pedido</a>
       {% endif %}
     </nav>
 

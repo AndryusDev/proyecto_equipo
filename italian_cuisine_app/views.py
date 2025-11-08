@@ -4,13 +4,14 @@ from django.contrib import messages
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
-from .models import Pedido, Categoria, Plato, Empleado
+from .models import Pedido, Categoria, Plato, Empleado,DetallePedido, Mesa
 from django.urls import reverse_lazy
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView, CreateView
 from django.shortcuts import get_object_or_404
 from django.utils.decorators import method_decorator
 from django.views import View
+from django.db import transaction
 
 
 
@@ -156,3 +157,81 @@ class EliminarPlatoView(View):
         plato.delete()
         messages.success(request, f"🗑️ Plato '{plato.nombre}' eliminado correctamente.")
         return redirect('platos_categorias')
+    
+
+# =============================
+# PANEL DE PEDIDOS (crear pedido)
+# =============================
+class PedidosView(LoginRequiredMixin, View):
+    """Muestra el panel de creación de pedidos."""
+    def get(self, request):
+        categorias = Categoria.objects.prefetch_related('platos').all()
+        mesas = Mesa.objects.all().order_by('numero')
+        try:
+            empleado = Empleado.objects.get(user=request.user)
+        except Empleado.DoesNotExist:
+            empleado = None
+        return render(request, 'panel/pedidos.html', {
+            'categorias': categorias,
+            'mesas': mesas,
+            'empleado': empleado
+        })
+
+
+class CrearPedidoView(LoginRequiredMixin, View):
+    """Crea un nuevo pedido mediante POST."""
+    def post(self, request):
+        mesa_id = request.POST.get('mesa')
+        platos = request.POST.getlist('platos')
+        cantidades = request.POST.getlist('cantidades')
+
+        if not mesa_id or not platos:
+            messages.error(request, "Debe seleccionar una mesa y al menos un plato.")
+            return redirect('pedidos')
+
+        mesa = get_object_or_404(Mesa, id=mesa_id)
+
+        # Validar si la mesa está ocupada
+        if mesa.ocupada:
+            messages.warning(request, f"La Mesa {mesa.numero} ya está ocupada.")
+            return redirect('pedidos')
+
+        with transaction.atomic():
+            pedido = Pedido.objects.create(
+                mesa=mesa,
+                mesero=request.user,
+                estado='espera',
+                total=0
+            )
+
+            total = 0
+            for i, plato_id in enumerate(platos):
+                plato = get_object_or_404(Plato, id=plato_id)
+                cantidad = int(cantidades[i])
+                subtotal = plato.precio * cantidad
+                DetallePedido.objects.create(
+                    pedido=pedido,
+                    plato=plato,
+                    cantidad=cantidad,
+                    subtotal=subtotal
+                )
+                total += subtotal
+
+            pedido.total = total
+            pedido.save()
+            mesa.ocupada = True
+            mesa.save()
+
+        messages.success(request, f"Pedido #{pedido.id} creado correctamente.")
+        return redirect('mis_pedidos')
+
+
+class MisPedidosView(LoginRequiredMixin, View):
+    """Muestra los pedidos del mesero logueado."""
+    def get(self, request):
+        pedidos = Pedido.objects.filter(mesero=request.user).select_related('mesa').prefetch_related('detallepedido_set__plato')
+        try:
+            empleado = Empleado.objects.get(user=request.user)
+        except Empleado.DoesNotExist:
+            empleado = None
+        return render(request, 'mis_pedidos.html', {'pedidos': pedidos, 'empleado': empleado})

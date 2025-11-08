@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import VistaLogin, VistaLogout, DashboardView, PanelPrincipalView, PlatosCategoriasView, AgregarCategoriaView, AgregarPlatoView, EliminarCategoriaView, EliminarPlatoView
+from .views import VistaLogin, VistaLogout, DashboardView, PanelPrincipalView, PlatosCategoriasView, AgregarCategoriaView, AgregarPlatoView, EliminarCategoriaView, EliminarPlatoView, PedidosView, MisPedidosView, CrearPedidoView
 from .views import VistaLogin
 from . import views
 
@@ -18,5 +18,8 @@ urlpatterns = [
     path('panel/platos/eliminar-categoria/<int:pk>/', EliminarCategoriaView.as_view(), name='eliminar_categoria'),
     path('panel/platos/eliminar-plato/<int:pk>/', EliminarPlatoView.as_view(), name='eliminar_plato'),
 
-
+    #pedidos
+    path('panel/pedidos/', PedidosView.as_view(), name='pedidos'),
+    path('panel/pedidos/crear/', CrearPedidoView.as_view(), name='crear_pedido'),
+    path('panel/mis-pedidos/', MisPedidosView.as_view(), name='mis_pedidos'),
 ]
