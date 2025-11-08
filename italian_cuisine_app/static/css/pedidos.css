@@ -1,107 +1,166 @@
-.selector-mesa {
-  margin-bottom: 1.5rem;
-}
-
-.selector-mesa label {
-  font-weight: bold;
-  color: #333;
-}
-
-.selector-mesa select {
-  width: 100%;
-  padding: 0.6rem;
-  border-radius: 8px;
-  border: 1px solid #ccc;
+/* === ESTRUCTURA GENERAL === */
+.panel {
   background: #fff;
-  font-size: 0.95rem;
-  transition: 0.2s ease;
+  border-radius: 14px;
+  padding: 1.5rem 2rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
-.selector-mesa select:focus {
-  border-color: #15803d;
-  box-shadow: 0 0 0 2px #bbf7d0;
-}
-
-/* === CATEGORÍAS === */
-.categorias {
-  margin-top: 2rem;
-}
-
-.categorias h3 {
-  margin-bottom: 1rem;
-  color: #166534;
-  border-bottom: 2px solid #d1fae5;
-  display: inline-block;
-  padding-bottom: 4px;
-}
-
-.platos-grid {
+/* === MESAS === */
+.grid-mesas {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 1rem;
   margin-bottom: 2rem;
 }
 
-/* === TARJETA DE PLATO === */
+.mesa-card {
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 1rem;
+  text-align: center;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.05);
+}
+
+.mesa-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 0.4rem;
+}
+
+.mesa-card .estado {
+  display: inline-block;
+  padding: 0.3rem 0.7rem;
+  border-radius: 9999px;
+  font-size: 0.9rem;
+}
+
+/* Estado Libre */
+.mesa-card.libre {
+  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
+  border-color: #22c55e;
+  color: #14532d;
+}
+.mesa-card.libre .estado {
+  background: #86efac;
+  color: #064e3b;
+}
+
+/* Estado Ocupada */
+.mesa-card.ocupada {
+  background: linear-gradient(135deg, #fee2e2, #fecaca);
+  border-color: #ef4444;
+  color: #7f1d1d;
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+.mesa-card.ocupada .estado {
+  background: #fca5a5;
+  color: #7f1d1d;
+}
+
+/* Mesa seleccionada */
+.mesa-card.seleccionada {
+  border-color: #15803d;
+  box-shadow: 0 0 10px rgba(21, 128, 61, 0.4);
+  transform: scale(1.03);
+}
+
+/* === PLATOS === */
+.platos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
 .plato-card {
-  background: #ffffff;
+  background: #fff;
+  border: 1px solid #e5e7eb;
   border-radius: 12px;
   text-align: center;
-  padding: 1rem;
-  border: 1px solid #e5e7eb;
+  padding: 0.8rem;
+  transition: 0.25s ease;
+  cursor: pointer;
   box-shadow: 0 2px 5px rgba(0,0,0,0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
-
 .plato-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+  transform: translateY(-3px);
 }
-
 .plato-card img {
   width: 100%;
-  height: 130px;
+  height: 120px;
   object-fit: cover;
   border-radius: 8px;
 }
-
 .plato-card h4 {
-  margin-top: 0.6rem;
+  margin: 0.5rem 0 0.3rem;
   color: #14532d;
-  font-size: 1rem;
+}
+.plato-card .precio {
+  color: #047857;
   font-weight: 600;
 }
 
-.plato-card p {
-  margin: 0.2rem 0 0.6rem;
-  font-weight: 600;
-  color: #1f2937;
+/* === RESUMEN DEL PEDIDO === */
+.resumen-pedido {
+  margin-top: 2rem;
+  background: #f9fafb;
+  padding: 1rem;
+  border-radius: 12px;
+  box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
 }
-
-.cantidad-input {
-  width: 60px;
-  padding: 0.3rem;
+.resumen-pedido ul {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+}
+.resumen-pedido li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+.pedido-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.pedido-controls button {
+  background: #e5e7eb;
+  border: none;
+  padding: 0.3rem 0.6rem;
   border-radius: 6px;
-  border: 1px solid #ccc;
-  text-align: center;
-  font-weight: 500;
+  font-weight: 700;
+  cursor: pointer;
+}
+.pedido-controls button:hover {
+  background: #bbf7d0;
+}
+#total {
+  color: #065f46;
+  font-weight: bold;
+  font-size: 1.1rem;
 }
 
-/* === BOTÓN === */
+/* === BOTÓN CONFIRMAR === */
 .btn-guardar {
-  background: #14532d;
+  background: linear-gradient(135deg, #14532d, #15803d);
   color: white;
   padding: 0.8rem 1.5rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-weight: 600;
-  margin-top: 1.5rem;
   cursor: pointer;
-  width: 100%;
-  font-size: 1rem;
+  transition: 0.3s ease;
 }
-
 .btn-guardar:hover {
-  background: #15803d;
-  transform: scale(1.02);
+  background: linear-gradient(135deg, #166534, #22c55e);
+  transform: scale(1.05);
+}
+.btn-guardar:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
 }

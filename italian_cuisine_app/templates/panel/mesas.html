@@ -1,0 +1,63 @@
+{% extends 'panel_base.html' %}
+{% load static %}
+{% block titulo %}Gestión de Mesas{% endblock %}
+{% block contenido %}
+<link rel="stylesheet" href="{% static 'css/mesas.css' %}">
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>🪑 Gestión de Mesas</h2>
+    <button class="btn-primario" onclick="abrirModal('modalMesa')">+ Nueva Mesa</button>
+  </div>
+
+  {% if messages %}
+  <div class="mensajes">
+    {% for message in messages %}
+      <p class="mensaje {{ message.tags }}">{{ message }}</p>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="grid-mesas">
+    {% for mesa in mesas %}
+      <div class="mesa-card {% if mesa.ocupada %}ocupada{% else %}libre{% endif %}" onclick="toggleMesa('{{ mesa.id }}')">
+        <h3>Mesa {{ mesa.numero }}</h3>
+        <p class="estado">{% if mesa.ocupada %}Ocupada{% else %}Libre{% endif %}</p>
+      </div>
+    {% empty %}
+      <p class="sin-mesas">Aún no hay mesas registradas.</p>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- MODAL: NUEVA MESA -->
+<div id="modalMesa" class="modal">
+  <div class="modal-content">
+    <h3>➕ Nueva Mesa</h3>
+    <form method="post" action="{% url 'panel_mesas' %}">
+      {% csrf_token %}
+      <input type="number" name="numero" placeholder="Número de mesa" min="1" required>
+      <div class="modal-actions">
+        <button type="submit" class="btn-guardar">Guardar</button>
+        <button type="button" class="btn-cerrar" onclick="cerrarModal('modalMesa')">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  function abrirModal(id){ document.getElementById(id).style.display='flex'; }
+  function cerrarModal(id){ document.getElementById(id).style.display='none'; }
+
+  function toggleMesa(id){
+    fetch(`/mesa/${id}/cambiar/`)
+      .then(res => res.json())
+      .then(data => {
+        const card = document.querySelector(`.mesa-card[onclick="toggleMesa('${id}')"]`);
+        card.classList.toggle('ocupada', data.ocupada);
+        card.classList.toggle('libre', !data.ocupada);
+        card.querySelector('.estado').innerText = data.ocupada ? 'Ocupada' : 'Libre';
+      });
+  }
+</script>
+{% endblock %}

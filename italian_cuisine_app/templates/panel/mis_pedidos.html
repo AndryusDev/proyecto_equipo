@@ -13,18 +13,37 @@
   {% if pedidos %}
     <div class="lista-pedidos">
       {% for pedido in pedidos %}
-        <div class="pedido-card">
-          <h3>Pedido #{{ pedido.id }}</h3>
-          <p><strong>Mesa:</strong> {{ pedido.mesa.numero }}</p>
-          <p><strong>Fecha:</strong> {{ pedido.fecha|date:"d/m/Y H:i" }}</p>
-          <p><strong>Estado:</strong> <span class="estado {{ pedido.estado }}">{{ pedido.get_estado_display }}</span></p>
-          <p><strong>Total:</strong> ${{ pedido.total }}</p>
-          <hr>
-          <ul>
-            {% for detalle in pedido.detallepedido_set.all %}
-              <li>{{ detalle.plato.nombre }} x {{ detalle.cantidad }} — ${{ detalle.subtotal }}</li>
-            {% endfor %}
-          </ul>
+        <div class="pedido-card {{ pedido.estado }}">
+          <div class="pedido-header">
+            <h3>Pedido #{{ pedido.id }}</h3>
+            <span class="estado {{ pedido.estado }}">{{ pedido.get_estado_display }}</span>
+          </div>
+          <div class="pedido-info">
+            <p><strong>Mesa:</strong> {{ pedido.mesa.numero }}</p>
+            <p><strong>Fecha:</strong> {{ pedido.fecha|date:"d/m/Y H:i" }}</p>
+            <p><strong>Total:</strong> ${{ pedido.total }}</p>
+          </div>
+
+          <div class="pedido-detalle">
+            <ul>
+              {% for detalle in pedido.detallepedido_set.all %}
+                <li>
+                  <span>{{ detalle.plato.nombre }}</span>
+                  <span>x {{ detalle.cantidad }}</span>
+                  <span>${{ detalle.subtotal }}</span>
+                </li>
+              {% endfor %}
+            </ul>
+          </div>
+
+          {% if pedido.estado != 'cerrado' %}
+            <form method="post" action="{% url 'cerrar_pedido' pedido.id %}">
+              {% csrf_token %}
+              <button type="submit" class="btn-cerrar">Cerrar Pedido</button>
+            </form>
+          {% else %}
+            <p class="pedido-cerrado">✅ Pedido cerrado</p>
+          {% endif %}
         </div>
       {% endfor %}
     </div>

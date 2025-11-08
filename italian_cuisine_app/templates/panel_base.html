@@ -21,6 +21,7 @@
       {% if empleado.cargo == 'administrador' %}
         <a href="{% url 'dashboard' %}" class="activo">📊 Dashboard</a>
         <a href="{% url 'platos_categorias' %}">🍝 Platos y Categorías</a>
+        <a href="{% url 'panel_mesas' %}">🪑 Mesas del Local</a>
         <a href="#">🧾 Pedidos</a>
         <a href="{% url 'empleados' %}">👥 Empleados</a>
       {% elif empleado.cargo == 'mesero' %}

@@ -1,56 +1,249 @@
 {% extends 'panel_base.html' %}
 {% load static %}
-{% block titulo %}Nuevo Pedido{% endblock %}
+{% block titulo %}Gestión de Pedidos{% endblock %}
 
 {% block contenido %}
-<link rel="stylesheet" href="{% static 'css/pedidos.css' %}">
+<link rel="stylesheet" href="{% static 'css/pedidos_pro.css' %}">
 
-<section class="panel">
-  <div class="panel-header">
-    <h2>🧾 Nuevo Pedido</h2>
-  </div>
-
-  <form method="post" action="{% url 'crear_pedido' %}">
-    {% csrf_token %}
-
-    <!-- SELECCIÓN DE MESA -->
-    <div class="selector-mesa">
-      <label for="mesa">Seleccionar Mesa:</label>
-      <select name="mesa" id="mesa" required>
-        <option value="">-- Elige una mesa --</option>
-        {% for mesa in mesas %}
-          <option value="{{ mesa.id }}" {% if mesa.ocupada %}disabled{% endif %}>
-            Mesa {{ mesa.numero }} {% if mesa.ocupada %}(Ocupada){% endif %}
-          </option>
-        {% endfor %}
-      </select>
-    </div>
-
-    <!-- LISTA DE PLATOS POR CATEGORÍA -->
-    <div class="categorias">
-      {% for categoria in categorias %}
-        <h3>{{ categoria.nombre }}</h3>
-        <div class="platos-grid">
-          {% for plato in categoria.platos.all %}
-            {% if plato.disponible %}
-              <div class="plato-card">
-                {% if plato.imagen %}
-                  <img src="{{ plato.imagen.url }}" alt="{{ plato.nombre }}">
-                {% else %}
-                  <img src="{% static 'img/plato_default.jpg' %}" alt="Sin imagen">
-                {% endif %}
-                <h4>{{ plato.nombre }}</h4>
-                <p>${{ plato.precio }}</p>
-                <input type="hidden" name="platos" value="{{ plato.id }}">
-                <input type="number" name="cantidades" value="1" min="1" class="cantidad-input">
-              </div>
-            {% endif %}
-          {% endfor %}
-        </div>
+<section class="pos-layout">
+  <!-- 🪑 MESAS -->
+  <aside class="col-mesas">
+    <h2>🪑 Mesas</h2>
+    <div class="grid-mesas">
+      {% for mesa in mesas %}
+      <button
+        type="button"
+        class="mesa-card {% if mesa.ocupada %}ocupada{% else %}libre{% endif %}"
+        data-id="{{ mesa.id }}"
+        data-ocupada="{{ mesa.ocupada|yesno:'true,false' }}"
+        onclick="seleccionarMesa(this)"
+        {% if mesa.ocupada %}disabled{% endif %}>
+        <span class="numero">#{{ mesa.numero }}</span>
+        <span class="estado">
+          {% if mesa.ocupada %}🟥 Ocupada{% else %}🟩 Libre{% endif %}
+        </span>
+      </button>
       {% endfor %}
     </div>
+  </aside>
 
-    <button type="submit" class="btn-guardar">💾 Crear Pedido</button>
-  </form>
+  <!-- 🍽️ MENÚ -->
+  <main class="col-menu">
+    <h2>🍽️ Menú</h2>
+    {% for categoria in categorias %}
+    <div class="categoria">
+      <h3>{{ categoria.nombre }}</h3>
+      <div class="platos-grid">
+        {% for plato in categoria.platos.all %}
+        {% if plato.disponible %}
+        <div class="plato-card" onclick="agregarPlato('{{ plato.id }}', '{{ plato.nombre }}', '{{ plato.precio }}')">
+          <div class="img-container">
+            {% if plato.imagen %}
+            <img src="{{ plato.imagen.url }}" alt="{{ plato.nombre }}">
+            {% else %}
+            <img src="{% static 'img/plato_default.jpg' %}" alt="Sin imagen">
+            {% endif %}
+          </div>
+          <h4>{{ plato.nombre }}</h4>
+          <p class="precio">${{ plato.precio }}</p>
+        </div>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+    {% endfor %}
+  </main>
+
+  <!-- 💰 FACTURA / RESUMEN -->
+  <aside class="col-resumen">
+    <h2>🧾 Pedido</h2>
+    <div class="mesa-activa" id="mesaActiva">
+      <p><strong>Mesa:</strong> <span id="mesaNumero">Ninguna</span></p>
+    </div>
+
+    <ul id="listaPedido" class="lista-pedido"></ul>
+
+    <div class="factura">
+      <div class="linea">
+        <span>Subtotal</span>
+        <span id="subtotal">$0.00</span>
+      </div>
+      <div class="linea">
+        <span>IVA (16%)</span>
+        <span id="iva">$0.00</span>
+      </div>
+      <div class="linea total">
+        <span>Total</span>
+        <span id="total">$0.00</span>
+      </div>
+    </div>
+
+    <form method="post" action="{% url 'crear_pedido' %}" id="formPedido">
+      {% csrf_token %}
+      <input type="hidden" name="mesa" id="mesaSeleccionada" required>
+      <div id="inputsHidden"></div>
+      <button type="submit" class="btn-confirmar" id="btnConfirmar" disabled>💾 Confirmar Pedido</button>
+    </form>
+  </aside>
 </section>
+
+<script>
+let mesaSeleccionada = null;
+let pedido = {};
+let total = 0;
+
+function seleccionarMesa(el) {
+  if (el.dataset.ocupada === "true") {
+    alert("⚠️ Mesa ocupada.");
+    return;
+  }
+  document.querySelectorAll(".mesa-card").forEach(m => m.classList.remove("seleccionada"));
+  el.classList.add("seleccionada");
+
+  mesaSeleccionada = el.dataset.id;
+  document.getElementById("mesaSeleccionada").value = mesaSeleccionada;
+  document.getElementById("mesaNumero").innerText = el.querySelector(".numero").textContent;
+  validarBotonConfirmar();
+}
+
+function agregarPlato(id, nombre, precio) {
+  if (!mesaSeleccionada) {
+    alert("Selecciona una mesa primero.");
+    return;
+  }
+  if (!pedido[id]) pedido[id] = { nombre, cantidad: 1, precio: parseFloat(precio) };
+  else pedido[id].cantidad++;
+  renderPedido();
+}
+
+function renderPedido() {
+  const lista = document.getElementById("listaPedido");
+  const inputs = document.getElementById("inputsHidden");
+  lista.innerHTML = "";
+  inputs.innerHTML = "";
+  let subtotal = 0;
+
+  Object.entries(pedido).forEach(([id, item]) => {
+    const sub = item.precio * item.cantidad;
+    subtotal += sub;
+
+    lista.innerHTML += `
+      <li>
+        <div>
+          <strong>${item.nombre}</strong><br>
+          <small>$${item.precio.toFixed(2)} c/u</small>
+        </div>
+        <div class="controles">
+          <button type="button" onclick="cambiarCantidad('${id}', -1)">-</button>
+          <span>${item.cantidad}</span>
+          <button type="button" onclick="cambiarCantidad('${id}', 1)">+</button>
+        </div>
+        <div class="subtotal">$${sub.toFixed(2)}</div>
+      </li>
+    `;
+  });
+
+  const iva = subtotal * 0.16;
+  total = subtotal + iva;
+
+  document.getElementById("subtotal").textContent = "$" + subtotal.toFixed(2);
+  document.getElementById("iva").textContent = "$" + iva.toFixed(2);
+  document.getElementById("total").textContent = "$" + total.toFixed(2);
+  validarBotonConfirmar();
+}
+
+function cambiarCantidad(id, delta) {
+  pedido[id].cantidad += delta;
+  if (pedido[id].cantidad <= 0) delete pedido[id];
+  renderPedido();
+}
+
+function validarBotonConfirmar() {
+  const btn = document.getElementById("btnConfirmar");
+  btn.disabled = !(mesaSeleccionada && Object.keys(pedido).length > 0);
+}
+
+/* === 🚀 NUEVO: Confirmar pedido con AJAX === */
+document.getElementById("formPedido").addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const formData = new FormData(e.target);
+  const btn = document.getElementById("btnConfirmar");
+  btn.disabled = true;
+  btn.textContent = "Guardando...";
+
+  try {
+    const response = await fetch("{% url 'crear_pedido' %}", {
+      method: "POST",
+      body: formData,
+      headers: { "X-Requested-With": "XMLHttpRequest" }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+
+      mostrarToast(`✅ Pedido #${data.id} creado correctamente para Mesa ${data.mesa}`);
+      actualizarMesaOcupada(data.mesa);
+
+      // limpiar interfaz
+      pedido = {};
+      renderPedido();
+      mesaSeleccionada = null;
+      document.getElementById("mesaNumero").innerText = "Ninguna";
+      document.querySelectorAll(".mesa-card").forEach(m => m.classList.remove("seleccionada"));
+    } else {
+      mostrarToast("⚠️ Error al crear el pedido", "error");
+    }
+  } catch (error) {
+    mostrarToast("❌ Fallo de conexión con el servidor", "error");
+  }
+
+  btn.disabled = true;
+  btn.textContent = "💾 Confirmar Pedido";
+});
+
+/* === Cambia el color de la mesa en tiempo real === */
+function actualizarMesaOcupada(numero) {
+  const mesaCard = Array.from(document.querySelectorAll(".mesa-card"))
+    .find(m => m.querySelector(".numero").textContent.includes(numero));
+  if (mesaCard) {
+    mesaCard.classList.remove("libre", "seleccionada");
+    mesaCard.classList.add("ocupada");
+    mesaCard.disabled = true;
+    mesaCard.querySelector(".estado").textContent = "🟥 Ocupada";
+  }
+}
+
+/* === Pequeño toast visual === */
+function mostrarToast(texto, tipo="success") {
+  const toast = document.createElement("div");
+  toast.className = `toast ${tipo}`;
+  toast.textContent = texto;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 3500);
+}
+</script>
+
+<style>
+.toast {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #16a34a;
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-weight: 600;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  animation: fadeIn 0.4s ease;
+  z-index: 9999;
+}
+.toast.error { background: #dc2626; }
+@keyframes fadeIn {
+  from {opacity: 0; transform: translateY(10px);}
+  to {opacity: 1; transform: translateY(0);}
+}
+</style>
+
+
 {% endblock %}

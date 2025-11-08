@@ -14,6 +14,7 @@ from django.db import transaction
 
 from .models import Empleado, Pedido, Categoria, Plato, DetallePedido, Mesa
 from .forms import EmpleadoModelForm
+from django.views.decorators.csrf import csrf_exempt
 
 
 # ============================================================
@@ -265,19 +266,51 @@ class EliminarPlatoView(View):
         plato.delete()
         messages.success(request, f"🗑️ Plato '{plato.nombre}' eliminado correctamente.")
         return redirect('platos_categorias')
+    
+@login_required
+def obtener_plato(request, pk):
+    """Retorna los datos de un plato en formato JSON."""
+    plato = get_object_or_404(Plato, pk=pk)
+    data = {
+        'id': plato.id,
+        'nombre': plato.nombre,
+        'descripcion': plato.descripcion,
+        'precio': float(plato.precio),
+        'categoria': plato.categoria.id if plato.categoria else None,
+        'disponible': plato.disponible,
+    }
+    return JsonResponse(data)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class EditarPlatoView(LoginRequiredMixin, View):
+    def post(self, request):
+        plato_id = request.POST.get('plato_id')
+        plato = get_object_or_404(Plato, id=plato_id)
+        plato.nombre = request.POST.get('nombre')
+        plato.descripcion = request.POST.get('descripcion')
+        plato.precio = request.POST.get('precio')
+        plato.disponible = 'disponible' in request.POST
+        categoria_id = request.POST.get('categoria')
+        if categoria_id:
+            plato.categoria_id = categoria_id
+        if 'imagen' in request.FILES:
+            plato.imagen = request.FILES['imagen']
+        plato.save()
+        messages.success(request, f"✅ Plato '{plato.nombre}' actualizado correctamente.")
+        return JsonResponse({'success': True})
 
 
 # ============================================================
 # 🔹 PANEL DE PEDIDOS
 # ============================================================
 class PedidosView(LoginRequiredMixin, View):
+    """Vista principal para crear pedidos."""
     def get(self, request):
         categorias = Categoria.objects.prefetch_related('platos').all()
         mesas = Mesa.objects.all().order_by('numero')
-        try:
-            empleado = Empleado.objects.get(user=request.user)
-        except Empleado.DoesNotExist:
-            empleado = None
+        empleado = Empleado.objects.filter(user=request.user).first()
+
         return render(request, 'panel/pedidos.html', {
             'categorias': categorias,
             'mesas': mesas,
@@ -286,6 +319,7 @@ class PedidosView(LoginRequiredMixin, View):
 
 
 class CrearPedidoView(LoginRequiredMixin, View):
+    """Guarda el pedido seleccionado desde la vista principal."""
     def post(self, request):
         mesa_id = request.POST.get('mesa')
         platos = request.POST.getlist('platos')
@@ -296,46 +330,105 @@ class CrearPedidoView(LoginRequiredMixin, View):
             return redirect('pedidos')
 
         mesa = get_object_or_404(Mesa, id=mesa_id)
-
         if mesa.ocupada:
             messages.warning(request, f"La Mesa {mesa.numero} ya está ocupada.")
             return redirect('pedidos')
 
-        with transaction.atomic():
-            pedido = Pedido.objects.create(
-                mesa=mesa,
-                mesero=request.user,
-                estado='espera',
-                total=0
-            )
-
-            total = 0
-            for i, plato_id in enumerate(platos):
-                plato = get_object_or_404(Plato, id=plato_id)
-                cantidad = int(cantidades[i])
-                subtotal = plato.precio * cantidad
-                DetallePedido.objects.create(
-                    pedido=pedido,
-                    plato=plato,
-                    cantidad=cantidad,
-                    subtotal=subtotal
+        try:
+            with transaction.atomic():
+                pedido = Pedido.objects.create(
+                    mesa=mesa,
+                    mesero=request.user,
+                    estado='en_proceso',
+                    total=0
                 )
-                total += subtotal
 
-            pedido.total = total
-            pedido.save()
-            mesa.ocupada = True
-            mesa.save()
+                total = 0
+                for i, plato_id in enumerate(platos):
+                    plato = get_object_or_404(Plato, id=plato_id)
+                    cantidad = int(cantidades[i])
+                    subtotal = plato.precio * cantidad
 
-        messages.success(request, f"Pedido #{pedido.id} creado correctamente.")
+                    DetallePedido.objects.create(
+                        pedido=pedido,
+                        plato=plato,
+                        cantidad=cantidad,
+                        subtotal=subtotal
+                    )
+                    total += subtotal
+
+                pedido.total = total
+                pedido.save()
+
+                mesa.ocupada = True
+                mesa.save()
+
+                messages.success(request, f"✅ Pedido #{pedido.id} creado para Mesa {mesa.numero}.")
+        except Exception as e:
+            messages.error(request, f"Error al crear pedido: {e}")
+            return redirect('pedidos')
+
         return redirect('mis_pedidos')
 
 
 class MisPedidosView(LoginRequiredMixin, View):
+    """Lista los pedidos del mesero actual."""
     def get(self, request):
-        pedidos = Pedido.objects.filter(mesero=request.user).select_related('mesa').prefetch_related('detallepedido_set__plato')
-        try:
-            empleado = Empleado.objects.get(user=request.user)
-        except Empleado.DoesNotExist:
-            empleado = None
-        return render(request, 'mis_pedidos.html', {'pedidos': pedidos, 'empleado': empleado})
+        pedidos = Pedido.objects.filter(
+            mesero=request.user
+        ).select_related('mesa').prefetch_related('detallepedido_set__plato')
+        empleado = Empleado.objects.filter(user=request.user).first()
+
+        return render(request, 'panel/mis_pedidos.html', {
+            'pedidos': pedidos,
+            'empleado': empleado
+        })
+
+
+class CerrarPedidoView(LoginRequiredMixin, View):
+    """Permite cerrar un pedido y liberar la mesa."""
+    def post(self, request, pk):
+        pedido = get_object_or_404(Pedido, pk=pk)
+        pedido.estado = 'cerrado'
+        pedido.save()
+
+        pedido.mesa.ocupada = False
+        pedido.mesa.save()
+
+        messages.success(request, f"🧾 Pedido #{pedido.id} cerrado y Mesa {pedido.mesa.numero} liberada.")
+        return redirect('mis_pedidos')
+
+
+#========================================
+#MESAS
+#========================================
+
+class PanelMesasView(LoginRequiredMixin, View):
+    template_name = "panel/mesas.html"
+    login_url = "/login/"
+
+    def get(self, request):
+        # 👇 Agregá esta línea:
+        empleado = Empleado.objects.get(user=request.user)
+
+        mesas = Mesa.objects.all().order_by("numero")
+        return render(request, self.template_name, {
+            "mesas": mesas,
+            "empleado": empleado  # 👈 agregado al contexto
+        })
+
+    def post(self, request):
+        empleado = Empleado.objects.get(user=request.user)  # también aquí si recargás la vista
+        numero = request.POST.get("numero")
+        if numero and not Mesa.objects.filter(numero=numero).exists():
+            Mesa.objects.create(numero=numero)
+            messages.success(request, f"✅ Mesa {numero} agregada correctamente.")
+        else:
+            messages.error(request, "⚠️ Ese número de mesa ya existe o es inválido.")
+        return redirect("panel_mesas")
+
+def cambiar_estado_mesa(request, pk):
+    mesa = get_object_or_404(Mesa, pk=pk)
+    mesa.ocupada = not mesa.ocupada
+    mesa.save()
+    return JsonResponse({"success": True, "ocupada": mesa.ocupada})

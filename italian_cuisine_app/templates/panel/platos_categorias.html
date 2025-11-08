@@ -58,13 +58,18 @@
                 </span>
               </div>
 
-              <!-- ELIMINAR PLATO -->
-              <form method="post" action="{% url 'eliminar_plato' plato.id %}" onsubmit="return confirm('¿Eliminar el plato {{ plato.nombre }}?');">
-                {% csrf_token %}
-                <button type="submit" class="btn-delete-mini" title="Eliminar plato">
-                  <span>🗑️</span>
-                </button>
-              </form>
+              <div class="acciones-mini">
+                <!-- EDITAR PLATO -->
+                <button type="button" class="btn-edit-mini" title="Editar plato" onclick="abrirModalEditar('{{ plato.id }}')">✏️</button>
+
+                <!-- ELIMINAR PLATO -->
+                <form method="post" action="{% url 'eliminar_plato' plato.id %}" onsubmit="return confirm('¿Eliminar el plato {{ plato.nombre }}?');">
+                  {% csrf_token %}
+                  <button type="submit" class="btn-delete-mini" title="Eliminar plato">
+                    <span>🗑️</span>
+                  </button>
+                </form>
+              </div>
             </div>
           {% empty %}
             <p class="sin-platos">No hay platos en esta categoría.</p>
@@ -123,6 +128,39 @@
   </div>
 </div>
 
+<!-- MODAL: EDITAR PLATO -->
+<div id="modalEditarPlato" class="modal">
+  <div class="modal-content">
+    <h3>✏️ Editar Plato</h3>
+    <form id="formEditarPlato" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="plato_id" id="plato_id">
+
+      <input type="text" name="nombre" id="nombreEditar" placeholder="Nombre del plato" required>
+      <textarea name="descripcion" id="descripcionEditar" placeholder="Descripción"></textarea>
+      <input type="number" name="precio" id="precioEditar" step="0.01" placeholder="Precio" required>
+
+      <label class="checkbox">
+        <input type="checkbox" name="disponible" id="disponibleEditar"> Disponible
+      </label>
+
+      <select name="categoria" id="categoriaEditar" required>
+        <option value="">Seleccione categoría</option>
+        {% for categoria in categorias %}
+          <option value="{{ categoria.id }}">{{ categoria.nombre }}</option>
+        {% endfor %}
+      </select>
+
+      <input type="file" name="imagen" accept="image/*">
+
+      <div class="modal-actions">
+        <button type="submit" class="btn-guardar">Guardar Cambios</button>
+        <button type="button" class="btn-cerrar" onclick="cerrarModal('modalEditarPlato')">Cancelar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <script>
   function abrirModal(id) {
     document.getElementById(id).style.display = 'flex';
@@ -130,5 +168,38 @@
   function cerrarModal(id) {
     document.getElementById(id).style.display = 'none';
   }
+
+  function abrirModalEditar(platoId) {
+    fetch(`/plato/${platoId}/`)
+      .then(response => response.json())
+      .then(data => {
+        document.getElementById('plato_id').value = data.id;
+        document.getElementById('nombreEditar').value = data.nombre;
+        document.getElementById('descripcionEditar').value = data.descripcion || '';
+        document.getElementById('precioEditar').value = data.precio;
+        document.getElementById('categoriaEditar').value = data.categoria;
+        document.getElementById('disponibleEditar').checked = data.disponible;
+        document.getElementById('modalEditarPlato').style.display = 'flex';
+      })
+      .catch(() => alert('Error al cargar el plato.'));
+  }
+
+  document.getElementById('formEditarPlato').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    fetch(`/plato/editar/`, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+      }
+    }).then(response => {
+      if (response.ok) {
+        location.reload();
+      } else {
+        alert('Error al actualizar el plato.');
+      }
+    });
+  });
 </script>
 {% endblock %}
