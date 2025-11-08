@@ -15,6 +15,20 @@ from django.db import transaction
 from .models import Empleado, Pedido, Categoria, Plato, DetallePedido, Mesa
 from .forms import EmpleadoModelForm
 
+
+# ============================================================
+# 🔹 Mixin para incluir el empleado logueado en el contexto
+# ============================================================
+class EmpleadoContextMixin:
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.request.user.is_authenticated:
+            context["empleado"] = Empleado.objects.filter(user=self.request.user).first()
+        else:
+            context["empleado"] = None
+        return context
+
+
 # ---------- LOGIN ----------
 class VistaLogin(LoginView):
     template_name = 'registration/login.html'
@@ -23,9 +37,8 @@ class VistaLogin(LoginView):
     def get_success_url(self):
         return reverse_lazy('dashboard')  # ✅ Al iniciar sesión va al dashboard
 
+
 def lista_pedidos(request):
-    # El modelo Pedido puede definir `fecha` o `hora_creacion` como campo DateTimeField.
-    # Elegimos el que exista para ordenar.
     if any(field.name == 'hora_creacion' for field in Pedido._meta.fields):
         pedidos = Pedido.objects.all().order_by('-hora_creacion')
     else:
@@ -33,17 +46,12 @@ def lista_pedidos(request):
 
     return render(request, 'pedidos/lista_pedidos.html', {'pedidos': pedidos})
 
+
 # ---------- DASHBOARD PRINCIPAL ----------
-class DashboardView(LoginRequiredMixin, TemplateView):
+class DashboardView(LoginRequiredMixin, EmpleadoContextMixin, TemplateView):
     template_name = 'panel/dashboard.html'
     login_url = '/login/'
 
-def get_context_data(self, **kwargs):
-    context = super().get_context_data(**kwargs)
-    empleado = Empleado.objects.get(user=self.request.user)
-    context["empleado"] = empleado
-    context["cargo"] = empleado.cargo
-    return context
 
 # ---------- PANEL (REDIRECCIÓN AUTOMÁTICA) ----------
 class PanelPrincipalView(LoginRequiredMixin, TemplateView):
@@ -51,21 +59,26 @@ class PanelPrincipalView(LoginRequiredMixin, TemplateView):
     login_url = '/login/'
 
     def get(self, request, *args, **kwargs):
-        return redirect('dashboard')  # ✅ redirige al dashboard automáticamente
+        return redirect('dashboard')
+
 
 # ---------- LOGOUT ----------
 class VistaLogout(LogoutView):
-    next_page = reverse_lazy('login')  # ✅ vuelve al login después de cerrar sesión
+    next_page = reverse_lazy('login')
 
-# ---------- GESTIÓN DE EMPLEADOS (tu versión local) ----------
-class UserListView(LoginRequiredMixin, ListView):
+
+# ============================================================
+# 🔹 GESTIÓN DE EMPLEADOS (con el mixin agregado)
+# ============================================================
+class UserListView(LoginRequiredMixin, EmpleadoContextMixin, ListView):
     model = Empleado
     template_name = 'empleados.html'
     context_object_name = 'empleados'
-    paginate_by = 10  # muestra 10 empleados por página
+    paginate_by = 10
     login_url = 'login'
 
-class EmpleadoDetailView(LoginRequiredMixin, DetailView):
+
+class EmpleadoDetailView(LoginRequiredMixin, EmpleadoContextMixin, DetailView):
     model = Empleado
     template_name = 'empleados_detail.html'
     context_object_name = 'empleado'
@@ -77,7 +90,8 @@ class EmpleadoDetailView(LoginRequiredMixin, DetailView):
             return [self.partial_template_name]
         return [self.template_name]
 
-class EmpleadoCreateView(LoginRequiredMixin, CreateView):
+
+class EmpleadoCreateView(LoginRequiredMixin, EmpleadoContextMixin, CreateView):
     model = Empleado
     form_class = EmpleadoModelForm
     template_name = 'empleados_form.html'
@@ -88,14 +102,12 @@ class EmpleadoCreateView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         empleado = form.save()
         messages.success(self.request, f'Empleado creado correctamente (id: {empleado.pk}).')
-        # If request is AJAX, return JSON with rendered row so client can insert it
         if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
             row_html = render_to_string('partials/empleado_row_partial.html', {'empleado': empleado, 'request': self.request})
             return JsonResponse({'success': True, 'action': 'create', 'html': row_html, 'pk': empleado.pk})
         return super().form_valid(form)
 
     def form_invalid(self, form):
-        # For AJAX, return rendered partial with status 400 so client can replace modal body
         if self.request.headers.get('x-requested-with') == 'XMLHttpRequest':
             html = render_to_string(self.partial_template_name, {'form': form, 'request': self.request, 'submit_label': 'Crear'})
             return HttpResponse(html, status=400)
@@ -106,7 +118,8 @@ class EmpleadoCreateView(LoginRequiredMixin, CreateView):
             return [self.partial_template_name]
         return [self.template_name]
 
-class EmpleadoUpdateView(LoginRequiredMixin, UpdateView):
+
+class EmpleadoUpdateView(LoginRequiredMixin, EmpleadoContextMixin, UpdateView):
     model = Empleado
     form_class = EmpleadoModelForm
     template_name = 'empleados_form.html'
@@ -133,7 +146,8 @@ class EmpleadoUpdateView(LoginRequiredMixin, UpdateView):
             return [self.partial_template_name]
         return [self.template_name]
 
-class EmpleadoDeleteView(LoginRequiredMixin, DeleteView):
+
+class EmpleadoDeleteView(LoginRequiredMixin, EmpleadoContextMixin, DeleteView):
     model = Empleado
     template_name = 'empleados_confirm_delete.html'
     success_url = reverse_lazy('empleados')
@@ -156,8 +170,9 @@ class EmpleadoDeleteView(LoginRequiredMixin, DeleteView):
         return redirect(success_url)
 
 
-#platos categorias
-
+# ============================================================
+# 🔹 PLATOS Y CATEGORÍAS
+# ============================================================
 class PlatosCategoriasView(LoginRequiredMixin, TemplateView):
     template_name = "panel/platos_categorias.html"
     login_url = "/login/"
@@ -176,7 +191,6 @@ class PlatosCategoriasView(LoginRequiredMixin, TemplateView):
         return context
 
     def post(self, request, *args, **kwargs):
-        """ Maneja la creación de categorías y platos desde el mismo formulario """
         if "nombre_categoria" in request.POST:
             nombre = request.POST.get("nombre_categoria")
             if not Categoria.objects.filter(nombre__iexact=nombre).exists():
@@ -230,7 +244,7 @@ class AgregarPlatoView(LoginRequiredMixin, CreateView):
     def form_valid(self, form):
         messages.success(self.request, "Plato añadido correctamente.")
         return super().form_valid(form)
-    
+
 
 @method_decorator(login_required, name='dispatch')
 class EliminarCategoriaView(View):
@@ -239,7 +253,6 @@ class EliminarCategoriaView(View):
         if categoria.platos.exists():
             messages.error(request, f"❌ No se puede eliminar la categoría '{categoria.nombre}' porque tiene platos asociados.")
             return redirect('platos_categorias')
-        
         categoria.delete()
         messages.success(request, f"🗑️ Categoría '{categoria.nombre}' eliminada correctamente.")
         return redirect('platos_categorias')
@@ -252,13 +265,12 @@ class EliminarPlatoView(View):
         plato.delete()
         messages.success(request, f"🗑️ Plato '{plato.nombre}' eliminado correctamente.")
         return redirect('platos_categorias')
-    
 
-# =============================
-# PANEL DE PEDIDOS (crear pedido)
-# =============================
+
+# ============================================================
+# 🔹 PANEL DE PEDIDOS
+# ============================================================
 class PedidosView(LoginRequiredMixin, View):
-    """Muestra el panel de creación de pedidos."""
     def get(self, request):
         categorias = Categoria.objects.prefetch_related('platos').all()
         mesas = Mesa.objects.all().order_by('numero')
@@ -274,7 +286,6 @@ class PedidosView(LoginRequiredMixin, View):
 
 
 class CrearPedidoView(LoginRequiredMixin, View):
-    """Crea un nuevo pedido mediante POST."""
     def post(self, request):
         mesa_id = request.POST.get('mesa')
         platos = request.POST.getlist('platos')
@@ -286,7 +297,6 @@ class CrearPedidoView(LoginRequiredMixin, View):
 
         mesa = get_object_or_404(Mesa, id=mesa_id)
 
-        # Validar si la mesa está ocupada
         if mesa.ocupada:
             messages.warning(request, f"La Mesa {mesa.numero} ya está ocupada.")
             return redirect('pedidos')
@@ -322,7 +332,6 @@ class CrearPedidoView(LoginRequiredMixin, View):
 
 
 class MisPedidosView(LoginRequiredMixin, View):
-    """Muestra los pedidos del mesero logueado."""
     def get(self, request):
         pedidos = Pedido.objects.filter(mesero=request.user).select_related('mesa').prefetch_related('detallepedido_set__plato')
         try:

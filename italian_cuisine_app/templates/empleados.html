@@ -1,68 +1,69 @@
-{% extends "_base.html" %}
+{% extends "panel_base.html" %}
 {% load static %}
 
-{% block title %}Lista de Empleados{% endblock %}
+{% block titulo %}Lista de Empleados{% endblock %}
 
-{% block content %}
-    <h1>Lista de Empleados</h1>
-    <div class="top-actions">
-        <a href="{% url 'empleado_create' %}" class="btn btn-new" data-modal="true">+ Nuevo empleado</a>
-    </div>
+{% block contenido %}
+<link rel="stylesheet" href="{% static 'italian_cuisine_app/css/styles.css' %}">
 
-    {% if empleados %}
-        <table class="db-table" aria-describedby="empleados-table">
-            <thead>
-                <tr>
-                    <th>#</th>
-                    <th>Nombre</th>
-                    <th>Apellido</th>
-                    <th>Cargo</th>
-                    <th>Teléfono</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for empleado in empleados %}
-                <tr>
-                    <td>{{ forloop.counter }}</td>
-                    <td>{{ empleado.first_name }}</td> 
-                    <td>{{ empleado.last_name }}</td>
-                    <td>{{ empleado.get_cargo_display }}</td>
-                    <td>{{ empleado.telefono|default:"-" }}</td>
-                    <td>
-                        <span class="actions">
-                            <a class="btn btn-small btn-new" href="{% url 'empleado_detail' empleado.pk %}" data-modal="true">Ver</a>
-                            <a class="btn btn-small btn-new" href="{% url 'empleado_edit' empleado.pk %}" data-modal="true">Editar</a>
-                            <a class="btn btn-small btn-outline" href="{% url 'empleado_delete' empleado.pk %}" data-modal="true">Eliminar</a>
-                        </span>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+  <h1>Lista de Empleados</h1>
 
-        {# Paginación simple #}
-        {% if is_paginated %}
-        <nav aria-label="Paginación empleados">
-            <ul style="list-style:none; padding:0; display:flex; gap:8px; margin-top:12px;">
-                {% if page_obj.has_previous %}
-                    <li><a href="?page={{ page_obj.previous_page_number }}">« Anterior</a></li>
-                {% else %}
-                    <li style="color:#ffffff">« Anterior</li>
-                {% endif %}
+  <div class="top-actions">
+      <a href="{% url 'empleado_create' %}" class="btn btn-new" data-modal="true">+ Nuevo empleado</a>
+  </div>
 
-                <li>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</li>
+  {% if empleados %}
+      <table class="db-table" aria-describedby="empleados-table">
+          <thead>
+              <tr>
+                  <th>#</th>
+                  <th>Nombre</th>
+                  <th>Apellido</th>
+                  <th>Cargo</th>
+                  <th>Teléfono</th>
+                  <th>Acciones</th>
+              </tr>
+          </thead>
+          <tbody>
+              {% for empleado in empleados %}
+              <tr data-pk="{{ empleado.pk }}">
+                  <td>{{ forloop.counter }}</td>
+                  <td>{{ empleado.first_name }}</td>
+                  <td>{{ empleado.last_name }}</td>
+                  <td>{{ empleado.get_cargo_display }}</td>
+                  <td>{{ empleado.telefono|default:"-" }}</td>
+                  <td>
+                      <span class="actions">
+                          <a class="btn btn-small btn-new" href="{% url 'empleado_detail' empleado.pk %}" data-modal="true">Ver</a>
+                          <a class="btn btn-small btn-new" href="{% url 'empleado_edit' empleado.pk %}" data-modal="true">Editar</a>
+                          <a class="btn btn-small btn-outline" href="{% url 'empleado_delete' empleado.pk %}" data-modal="true">Eliminar</a>
+                      </span>
+                  </td>
+              </tr>
+              {% endfor %}
+          </tbody>
+      </table>
 
-                {% if page_obj.has_next %}
-                    <li><a href="?page={{ page_obj.next_page_number }}">Siguiente »</a></li>
-                {% else %}
-                    <li style="color:#999">Siguiente »</li>
-                {% endif %}
-            </ul>
-        </nav>
-        {% endif %}
-    {% else %}
-        <p class="empty-msg">No hay empleados para mostrar.</p>
-    {% endif %}
+      {% if is_paginated %}
+      <nav aria-label="Paginación empleados">
+          <ul style="list-style:none; padding:0; display:flex; gap:8px; margin-top:12px;">
+              {% if page_obj.has_previous %}
+                  <li><a href="?page={{ page_obj.previous_page_number }}">« Anterior</a></li>
+              {% else %}
+                  <li style="color:#999">« Anterior</li>
+              {% endif %}
 
+              <li>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</li>
+
+              {% if page_obj.has_next %}
+                  <li><a href="?page={{ page_obj.next_page_number }}">Siguiente »</a></li>
+              {% else %}
+                  <li style="color:#999">Siguiente »</li>
+              {% endif %}
+          </ul>
+      </nav>
+      {% endif %}
+  {% else %}
+      <p class="empty-msg">No hay empleados para mostrar.</p>
+  {% endif %}
 {% endblock %}

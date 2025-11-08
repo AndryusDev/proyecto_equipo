@@ -22,8 +22,7 @@
         <a href="{% url 'dashboard' %}" class="activo">📊 Dashboard</a>
         <a href="{% url 'platos_categorias' %}">🍝 Platos y Categorías</a>
         <a href="#">🧾 Pedidos</a>
-        <a href="#">👥 Empleados</a>
-        <a href="#">📈 Reportes</a>
+        <a href="{% url 'empleados' %}">👥 Empleados</a>
       {% elif empleado.cargo == 'mesero' %}
         <a href="{% url 'mis_pedidos' %}">🧾 Mis Pedidos</a>
         <a href="{% url 'pedidos' %}">➕ Nuevo Pedido</a>
@@ -58,6 +57,34 @@
       {% block contenido %}{% endblock %}
     </main>
   </div>
+  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
+<!-- Modal root (global) -->
+<div id="modal-root" class="modal-root" aria-hidden="true">
+    <div class="modal-backdrop" data-modal-close></div>
+    <div class="modal-window" role="dialog" aria-modal="true">
+        <button class="modal-close" aria-label="Cerrar" data-modal-close>&times;</button>
+        <div id="modal-body" class="modal-body"></div>
+    </div>
+</div>
+
+<!-- Scripts de interacción AJAX y modales -->
+<script>
+(function(){
+    function openModal(){const r=document.getElementById('modal-root');if(!r)return;r.setAttribute('aria-hidden','false');document.body.style.overflow='hidden';}
+    function closeModal(){const r=document.getElementById('modal-root');if(!r)return;r.setAttribute('aria-hidden','true');const b=document.getElementById('modal-body');if(b)b.innerHTML='';document.body.style.overflow='';}
+    function getCookie(name){let cV=null;if(document.cookie&&document.cookie!==''){const c=document.cookie.split(';');for(let i=0;i<c.length;i++){const cookie=c[i].trim();if(cookie.substring(0,name.length+1)===(name+'=')){cV=decodeURIComponent(cookie.substring(name.length+1));break;}}}return cV;}
+    function showToast(m,t='success',time=3500){const c=document.getElementById('toast-container');if(!c)return;const d=document.createElement('div');d.className='toast '+(t?t:'');d.textContent=m;c.appendChild(d);requestAnimationFrame(()=>d.classList.add('show'));setTimeout(()=>{d.classList.remove('show');setTimeout(()=>d.remove(),220);},time);}
+    function attachModalFormHandler(){const m=document.getElementById('modal-body');if(!m)return;const f=m.querySelector('form');if(!f)return;f.addEventListener('submit',function(e){e.preventDefault();const a=f.action||window.location.href;const method=(f.method||'post').toUpperCase();const data=new FormData(f);const h={'X-Requested-With':'XMLHttpRequest'};const cs=getCookie('csrftoken');if(cs)h['X-CSRFToken']=cs;fetch(a,{method:method,headers:h,body:data}).then(r=>{const ct=r.headers.get('content-type')||'';if(ct.indexOf('application/json')!==-1){return r.json().then(j=>({json:j}));}return r.text().then(t=>({text:t,status:r.status}));}).then(res=>handleAjaxResult(res)).catch(err=>{console.error('Error enviando formulario en modal',err);showToast('Error de red','error');});},{once:true});}
+    function handleAjaxResult(res){if(res.json){if(res.json.success){if(res.json.action){const a=res.json.action;const pk=res.json.pk;const html=res.json.html||'';const t=document.querySelector('table.db-table');const tb=t?t.querySelector('tbody'):null;function renum(){if(!tb)return;Array.from(tb.querySelectorAll('tr')).forEach((tr,i)=>{const f=tr.querySelector('td');if(f)f.textContent=(i+1).toString();});}
+        if(a==='create'){if(tb){tb.insertAdjacentHTML('afterbegin',html);renum();showToast('Empleado creado.');closeModal();return;}}
+        if(a==='update'){const ex=document.querySelector('table.db-table tbody tr[data-pk="'+pk+'"]');if(ex){ex.outerHTML=html;showToast('Empleado actualizado.');closeModal();return;}}
+        if(a==='delete'){const ex=document.querySelector('table.db-table tbody tr[data-pk="'+pk+'"]');if(ex){ex.remove();renum();showToast('Empleado eliminado.');closeModal();return;}}
+        closeModal();window.location.reload();return;}closeModal();window.location.reload();return;}else if(res.json.html){document.getElementById('modal-body').innerHTML=res.json.html;attachModalFormHandler();return;}}
+        else if(res.text){if(res.status&&res.status>=400){document.getElementById('modal-body').innerHTML=res.text;attachModalFormHandler();return;}else{closeModal();window.location.reload();return;}}}
+    document.addEventListener('click',function(e){const el=e.target.closest('[data-modal="true"]');if(!el)return;e.preventDefault();const url=el.getAttribute('href');fetch(url,{headers:{'X-Requested-With':'XMLHttpRequest'}}).then(r=>r.text()).then(html=>{document.getElementById('modal-body').innerHTML=html;openModal();attachModalFormHandler();}).catch(err=>{console.error(err);showToast('Error cargando contenido','error');});});
+    document.addEventListener('click',function(e){const el=e.target.closest('[data-modal-close]');if(!el)return;e.preventDefault();closeModal();});
+})();
+</script>
 </body>
 </html>
