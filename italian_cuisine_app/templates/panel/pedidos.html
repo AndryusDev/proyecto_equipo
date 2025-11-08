@@ -1,0 +1,56 @@
+{% extends 'panel_base.html' %}
+{% load static %}
+{% block titulo %}Nuevo Pedido{% endblock %}
+
+{% block contenido %}
+<link rel="stylesheet" href="{% static 'css/pedidos.css' %}">
+
+<section class="panel">
+  <div class="panel-header">
+    <h2>🧾 Nuevo Pedido</h2>
+  </div>
+
+  <form method="post" action="{% url 'crear_pedido' %}">
+    {% csrf_token %}
+
+    <!-- SELECCIÓN DE MESA -->
+    <div class="selector-mesa">
+      <label for="mesa">Seleccionar Mesa:</label>
+      <select name="mesa" id="mesa" required>
+        <option value="">-- Elige una mesa --</option>
+        {% for mesa in mesas %}
+          <option value="{{ mesa.id }}" {% if mesa.ocupada %}disabled{% endif %}>
+            Mesa {{ mesa.numero }} {% if mesa.ocupada %}(Ocupada){% endif %}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- LISTA DE PLATOS POR CATEGORÍA -->
+    <div class="categorias">
+      {% for categoria in categorias %}
+        <h3>{{ categoria.nombre }}</h3>
+        <div class="platos-grid">
+          {% for plato in categoria.platos.all %}
+            {% if plato.disponible %}
+              <div class="plato-card">
+                {% if plato.imagen %}
+                  <img src="{{ plato.imagen.url }}" alt="{{ plato.nombre }}">
+                {% else %}
+                  <img src="{% static 'img/plato_default.jpg' %}" alt="Sin imagen">
+                {% endif %}
+                <h4>{{ plato.nombre }}</h4>
+                <p>${{ plato.precio }}</p>
+                <input type="hidden" name="platos" value="{{ plato.id }}">
+                <input type="number" name="cantidades" value="1" min="1" class="cantidad-input">
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      {% endfor %}
+    </div>
+
+    <button type="submit" class="btn-guardar">💾 Crear Pedido</button>
+  </form>
+</section>
+{% endblock %}

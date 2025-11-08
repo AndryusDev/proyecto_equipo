@@ -1,0 +1,107 @@
+.selector-mesa {
+  margin-bottom: 1.5rem;
+}
+
+.selector-mesa label {
+  font-weight: bold;
+  color: #333;
+}
+
+.selector-mesa select {
+  width: 100%;
+  padding: 0.6rem;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  background: #fff;
+  font-size: 0.95rem;
+  transition: 0.2s ease;
+}
+
+.selector-mesa select:focus {
+  border-color: #15803d;
+  box-shadow: 0 0 0 2px #bbf7d0;
+}
+
+/* === CATEGORÍAS === */
+.categorias {
+  margin-top: 2rem;
+}
+
+.categorias h3 {
+  margin-bottom: 1rem;
+  color: #166534;
+  border-bottom: 2px solid #d1fae5;
+  display: inline-block;
+  padding-bottom: 4px;
+}
+
+.platos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+/* === TARJETA DE PLATO === */
+.plato-card {
+  background: #ffffff;
+  border-radius: 12px;
+  text-align: center;
+  padding: 1rem;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.plato-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.12);
+}
+
+.plato-card img {
+  width: 100%;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.plato-card h4 {
+  margin-top: 0.6rem;
+  color: #14532d;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.plato-card p {
+  margin: 0.2rem 0 0.6rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.cantidad-input {
+  width: 60px;
+  padding: 0.3rem;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  text-align: center;
+  font-weight: 500;
+}
+
+/* === BOTÓN === */
+.btn-guardar {
+  background: #14532d;
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  margin-top: 1.5rem;
+  cursor: pointer;
+  width: 100%;
+  font-size: 1rem;
+}
+
+.btn-guardar:hover {
+  background: #15803d;
+  transform: scale(1.02);
+}

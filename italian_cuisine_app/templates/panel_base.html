@@ -20,13 +20,13 @@
     <nav class="menu">
       {% if empleado.cargo == 'administrador' %}
         <a href="{% url 'dashboard' %}" class="activo">📊 Dashboard</a>
-        <a href="#">🍝 Platos y Categorías</a>
+        <a href="{% url 'platos_categorias' %}">🍝 Platos y Categorías</a>
         <a href="#">🧾 Pedidos</a>
         <a href="#">👥 Empleados</a>
         <a href="#">📈 Reportes</a>
       {% elif empleado.cargo == 'mesero' %}
-        <a href="#">🧾 Mis Pedidos</a>
-        <a href="#">➕ Nuevo Pedido</a>
+        <a href="{% url 'mis_pedidos' %}">🧾 Mis Pedidos</a>
+        <a href="{% url 'pedidos' %}">➕ Nuevo Pedido</a>
       {% endif %}
     </nav>
 
