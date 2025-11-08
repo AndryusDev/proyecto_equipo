@@ -27,7 +27,7 @@ def redireccion_inicio(request):
 
 urlpatterns = [
     # Página principal (lista de pedidos general)
-    path('', redireccion_inicio, name='inicio'),  # 👈 Condicional aplicado aquí
+    path('', redireccion_inicio),  # 👈 Condicional aplicado aquí
 
     # Autenticación
     path('login/', VistaLogin.as_view(), name='login'),
