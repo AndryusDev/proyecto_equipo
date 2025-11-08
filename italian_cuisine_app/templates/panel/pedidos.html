@@ -78,11 +78,14 @@
       </div>
     </div>
 
+    <!-- 🧩 Formulario normal -->
     <form method="post" action="{% url 'crear_pedido' %}" id="formPedido">
       {% csrf_token %}
       <input type="hidden" name="mesa" id="mesaSeleccionada" required>
       <div id="inputsHidden"></div>
-      <button type="submit" class="btn-confirmar" id="btnConfirmar" disabled>💾 Confirmar Pedido</button>
+      <button type="submit" class="btn-confirmar" id="btnConfirmar" disabled>
+        💾 Confirmar Pedido
+      </button>
     </form>
   </aside>
 </section>
@@ -141,6 +144,12 @@ function renderPedido() {
         <div class="subtotal">$${sub.toFixed(2)}</div>
       </li>
     `;
+
+    // 👉 Genera los inputs para el POST tradicional
+    inputs.innerHTML += `
+      <input type="hidden" name="platos" value="${id}">
+      <input type="hidden" name="cantidades" value="${item.cantidad}">
+    `;
   });
 
   const iva = subtotal * 0.16;
@@ -162,88 +171,5 @@ function validarBotonConfirmar() {
   const btn = document.getElementById("btnConfirmar");
   btn.disabled = !(mesaSeleccionada && Object.keys(pedido).length > 0);
 }
-
-/* === 🚀 NUEVO: Confirmar pedido con AJAX === */
-document.getElementById("formPedido").addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const formData = new FormData(e.target);
-  const btn = document.getElementById("btnConfirmar");
-  btn.disabled = true;
-  btn.textContent = "Guardando...";
-
-  try {
-    const response = await fetch("{% url 'crear_pedido' %}", {
-      method: "POST",
-      body: formData,
-      headers: { "X-Requested-With": "XMLHttpRequest" }
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-
-      mostrarToast(`✅ Pedido #${data.id} creado correctamente para Mesa ${data.mesa}`);
-      actualizarMesaOcupada(data.mesa);
-
-      // limpiar interfaz
-      pedido = {};
-      renderPedido();
-      mesaSeleccionada = null;
-      document.getElementById("mesaNumero").innerText = "Ninguna";
-      document.querySelectorAll(".mesa-card").forEach(m => m.classList.remove("seleccionada"));
-    } else {
-      mostrarToast("⚠️ Error al crear el pedido", "error");
-    }
-  } catch (error) {
-    mostrarToast("❌ Fallo de conexión con el servidor", "error");
-  }
-
-  btn.disabled = true;
-  btn.textContent = "💾 Confirmar Pedido";
-});
-
-/* === Cambia el color de la mesa en tiempo real === */
-function actualizarMesaOcupada(numero) {
-  const mesaCard = Array.from(document.querySelectorAll(".mesa-card"))
-    .find(m => m.querySelector(".numero").textContent.includes(numero));
-  if (mesaCard) {
-    mesaCard.classList.remove("libre", "seleccionada");
-    mesaCard.classList.add("ocupada");
-    mesaCard.disabled = true;
-    mesaCard.querySelector(".estado").textContent = "🟥 Ocupada";
-  }
-}
-
-/* === Pequeño toast visual === */
-function mostrarToast(texto, tipo="success") {
-  const toast = document.createElement("div");
-  toast.className = `toast ${tipo}`;
-  toast.textContent = texto;
-  document.body.appendChild(toast);
-  setTimeout(() => toast.remove(), 3500);
-}
 </script>
-
-<style>
-.toast {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  background: #16a34a;
-  color: white;
-  padding: 12px 20px;
-  border-radius: 8px;
-  font-weight: 600;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-  animation: fadeIn 0.4s ease;
-  z-index: 9999;
-}
-.toast.error { background: #dc2626; }
-@keyframes fadeIn {
-  from {opacity: 0; transform: translateY(10px);}
-  to {opacity: 1; transform: translateY(0);}
-}
-</style>
-
-
 {% endblock %}

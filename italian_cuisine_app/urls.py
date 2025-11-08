@@ -4,14 +4,30 @@ from .views import (
     PlatosCategoriasView, AgregarCategoriaView, AgregarPlatoView,
     EliminarCategoriaView, EliminarPlatoView,
     PedidosView, CrearPedidoView, MisPedidosView, CerrarPedidoView,
-    PanelMesasView, cambiar_estado_mesa
+    PanelMesasView, cambiar_estado_mesa, InicioView
 )
+from django.shortcuts import redirect
+from .models import Empleado
 from . import views
 
+def redireccion_inicio(request):
+    """Redirige al dashboard o a mis_pedidos según el cargo."""
+    if not request.user.is_authenticated:
+        return redirect('login')
+
+    empleado = Empleado.objects.filter(user=request.user).first()
+    if empleado:
+        if empleado.cargo == 'administrador':
+            return redirect('dashboard')
+        elif empleado.cargo == 'mesero':
+            return redirect('mis_pedidos')
+
+    # Por defecto
+    return redirect('mis_pedidos')
 
 urlpatterns = [
     # Página principal (lista de pedidos general)
-    path('', views.lista_pedidos, name='lista_pedidos'),
+    path('', redireccion_inicio, name='inicio'),  # 👈 Condicional aplicado aquí
 
     # Autenticación
     path('login/', VistaLogin.as_view(), name='login'),
@@ -48,4 +64,5 @@ urlpatterns = [
     # 🪑 Mesas
     path("panel/mesas/", PanelMesasView.as_view(), name="panel_mesas"),
     path("mesa/<int:pk>/cambiar/", cambiar_estado_mesa, name="cambiar_estado_mesa"),
+
 ]

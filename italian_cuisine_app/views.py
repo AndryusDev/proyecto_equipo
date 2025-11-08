@@ -305,17 +305,29 @@ class EditarPlatoView(LoginRequiredMixin, View):
 # 🔹 PANEL DE PEDIDOS
 # ============================================================
 class PedidosView(LoginRequiredMixin, View):
-    """Vista principal para crear pedidos."""
+    """Vista principal para crear y gestionar pedidos."""
+    
     def get(self, request):
+        # Obtiene todas las categorías con sus platos (optimiza con prefetch)
         categorias = Categoria.objects.prefetch_related('platos').all()
+        # Lista las mesas en orden numérico
         mesas = Mesa.objects.all().order_by('numero')
+        # Obtiene el empleado asociado al usuario logueado (si existe)
         empleado = Empleado.objects.filter(user=request.user).first()
 
-        return render(request, 'panel/pedidos.html', {
-            'categorias': categorias,
-            'mesas': mesas,
-            'empleado': empleado
-        })
+        contexto = {
+            "categorias": categorias,
+            "mesas": mesas,
+            "empleado": empleado,
+        }
+
+        return render(request, "panel/pedidos.html", contexto)
+    
+def empleado_context(request):
+    empleado = None
+    if request.user.is_authenticated:
+        empleado = Empleado.objects.filter(user=request.user).first()
+    return {'empleado': empleado}
 
 
 class CrearPedidoView(LoginRequiredMixin, View):
@@ -326,11 +338,15 @@ class CrearPedidoView(LoginRequiredMixin, View):
         cantidades = request.POST.getlist('cantidades')
 
         if not mesa_id or not platos:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'error': 'Debe seleccionar una mesa y al menos un plato.'}, status=400)
             messages.error(request, "Debe seleccionar una mesa y al menos un plato.")
             return redirect('pedidos')
 
         mesa = get_object_or_404(Mesa, id=mesa_id)
         if mesa.ocupada:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'error': f'La Mesa {mesa.numero} ya está ocupada.'}, status=400)
             messages.warning(request, f"La Mesa {mesa.numero} ya está ocupada.")
             return redirect('pedidos')
 
@@ -363,13 +379,24 @@ class CrearPedidoView(LoginRequiredMixin, View):
                 mesa.ocupada = True
                 mesa.save()
 
-                messages.success(request, f"✅ Pedido #{pedido.id} creado para Mesa {mesa.numero}.")
         except Exception as e:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'error': str(e)}, status=500)
             messages.error(request, f"Error al crear pedido: {e}")
             return redirect('pedidos')
 
-        return redirect('mis_pedidos')
+        # 👇 si viene de AJAX, responder con JSON
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({
+                'id': pedido.id,
+                'mesa': mesa.numero,
+                'total': pedido.total,
+                'estado': pedido.estado
+            })
 
+        # 👇 si viene de un formulario normal (no AJAX)
+        messages.success(request, f"✅ Pedido #{pedido.id} creado para Mesa {mesa.numero}.")
+        return redirect('mis_pedidos')
 
 class MisPedidosView(LoginRequiredMixin, View):
     """Lista los pedidos del mesero actual."""
@@ -397,6 +424,7 @@ class CerrarPedidoView(LoginRequiredMixin, View):
 
         messages.success(request, f"🧾 Pedido #{pedido.id} cerrado y Mesa {pedido.mesa.numero} liberada.")
         return redirect('mis_pedidos')
+    
 
 
 #========================================
@@ -432,3 +460,24 @@ def cambiar_estado_mesa(request, pk):
     mesa.ocupada = not mesa.ocupada
     mesa.save()
     return JsonResponse({"success": True, "ocupada": mesa.ocupada})
+
+
+
+from django.shortcuts import redirect
+from django.views import View
+from django.contrib.auth.mixins import LoginRequiredMixin
+from .models import Empleado
+
+class InicioView(LoginRequiredMixin, View):
+    """Redirige según el rol del empleado después de iniciar sesión."""
+    def get(self, request):
+        empleado = Empleado.objects.filter(user=request.user).first()
+
+        if empleado:
+            if empleado.cargo == "administrador":
+                return redirect("dashboard")
+            elif empleado.cargo == "mesero":
+                return redirect("mis_pedidos")
+
+        # Si no tiene cargo asignado
+        return redirect("mis_pedidos")
