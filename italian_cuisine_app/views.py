@@ -38,12 +38,12 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     template_name = 'panel/dashboard.html'
     login_url = '/login/'
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        empleado = Empleado.objects.get(user=self.request.user)
-        context["empleado"] = empleado
-        context["cargo"] = empleado.cargo
-        return context
+def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    empleado = Empleado.objects.get(user=self.request.user)
+    context["empleado"] = empleado
+    context["cargo"] = empleado.cargo
+    return context
 
 # ---------- PANEL (REDIRECCIÓN AUTOMÁTICA) ----------
 class PanelPrincipalView(LoginRequiredMixin, TemplateView):
